@@ -5,4 +5,4 @@ COPY . /app
 WORKDIR /app
 
 RUN gradle shadowJar
-RUN java -jar ./build/libs/shadow-1.0-SNAPSHOT-all.jar
+ENTRYPOINT java -jar ./build/libs/shadow-1.0-SNAPSHOT-all.jar
