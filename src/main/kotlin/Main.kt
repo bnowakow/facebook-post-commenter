@@ -22,6 +22,10 @@ fun main(args: Array<String>) {
                     val replyMessage: String = facebookReplies.randomizeThankYouReply()
                     println("\ttrying replying with '${replyMessage}'")
                     facebook.commentPost(comment.id, replyMessage)
+
+                    val numberOfSeconds: Long = (10..120).random().toLong()
+                    println("sleeping for ${numberOfSeconds} seconds\n")
+                    Thread.sleep(1000 * numberOfSeconds)
                 }
             }
         }
