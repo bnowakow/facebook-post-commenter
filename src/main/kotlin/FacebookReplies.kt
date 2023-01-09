@@ -65,9 +65,11 @@ class FacebookReplies(private val facebook: Facebook) {
     }
 
     fun checkIfAllCommentsUnderPostContainAdminComment(post: Post) {
-        var comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(250))
+        var commentLimitNumber: Int = 250
+        var comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
         var paging: Paging<Comment>
-        logger.info("in post [${post.message?.substring(0, 30)}...] got ${comments.size} comments on first page")
+        logger.info("in post [${post.message?.substring(0, 30)}...] got ${comments.size} comments on first page with limit of ${commentLimitNumber}")
+        check(commentLimitNumber > comments.size)
 
         checkIfAllCommentsContainAdminComment(comments)
 
