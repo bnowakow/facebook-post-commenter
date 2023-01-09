@@ -3,3 +3,10 @@ version: "3.9"
 services:
   facebook-post-commenter:
     build: .
+    volumes:
+      - gradle-cache:/home/gradle/.gradle
+
+volumes:
+    gradle-cache:
+        driver: local
+
