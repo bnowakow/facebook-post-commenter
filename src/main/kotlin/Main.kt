@@ -10,6 +10,14 @@ fun main(args: Array<String>) {
     val facebookReplies: FacebookReplies = FacebookReplies(facebook)
     val logger = KotlinLogging.logger {}
 
+    facebook.extendTokenExpiration()
+
+    //debug
+//    val facebookAuthorization: FacebookAuthorization = FacebookAuthorization()
+//    facebookAuthorization.convertShortLivingTokenToLongLivingOne()
+    // \debug
+
+
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
     logger.info("got ${posts.size} posts")
 
@@ -18,7 +26,7 @@ fun main(args: Array<String>) {
         facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
     }
 
-    // TODO figure out can we get id's of ad posts
+    // TODO figure out can we get id's of ad posts from API
     val adPosts: List<String> = listOf(
         "pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l"
     )
