@@ -52,7 +52,7 @@ class FacebookReplies(private val facebook: Facebook) {
 
                     facebook.likePost(comment.id)
                     val replyMessage: String = randomizeThankYouReply()
-                    logger.info("\t\t\ttrying replying with '${replyMessage}'")
+                    logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
                     facebook.commentPost(comment.id, replyMessage)
                     commentedPosts.inc()
 
@@ -67,9 +67,26 @@ class FacebookReplies(private val facebook: Facebook) {
     fun checkIfAllCommentsUnderPostContainAdminComment(post: Post) {
         var commentLimitNumber: Int = 250
         var comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
-        var paging: Paging<Comment>
-        logger.info("in post [${post.message?.substring(0, 30)}...] got ${comments.size} comments on first page with limit of ${commentLimitNumber}")
+
+        var messagePreview: String = ""
+        if (post.message !== null ) {
+            if (post.message.length > 30) {
+                messagePreview = post.message.substring(0, 30)
+            } else {
+                messagePreview = post.message
+            }
+        }
+
+        logger.info("in post [${messagePreview}...] got ${comments.size} comments on first page with limit of ${commentLimitNumber}")
         check(commentLimitNumber > comments.size)
+
+        // debug
+        //        var paging: Paging<Comment> = comments.paging
+//        var comments2: PagableList<Comment> = facebook.fetchNext(paging)
+//        var paging2: Paging<Comment> = comments2.paging
+//        var comments3: PagableList<Comment> = facebook.fetchNext(paging2)
+//        var paging3: Paging<Comment> = comments3.paging
+        // \debug
 
         checkIfAllCommentsContainAdminComment(comments)
 

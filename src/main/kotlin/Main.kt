@@ -18,6 +18,14 @@ fun main(args: Array<String>) {
         facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
     }
 
+    // TODO figure out can we get id's of ad posts
+    val adPosts: List<String> = listOf(
+        "pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l"
+    )
+    for (adPost in adPosts) {
+        facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(facebook.getPost("105161449087504_" + adPost))
+    }
+
     logger.info("added comment to ${facebookReplies.commentedPosts.toString()} comments")
 
     // shared posts
