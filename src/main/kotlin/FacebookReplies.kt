@@ -25,21 +25,32 @@ class FacebookReplies(private val facebook: Facebook) {
         return false;
     }
 
-    fun randomizeThankYouReply(): String {
-        val reply: StringBuilder = StringBuilder()
-        reply.append(listOf("", "Bardzo Tobie", "Bardzo Ci").random())
-        if (reply.isNotEmpty()) {
+    companion object {
+        fun randomizeThankYouReply(): String {
+            val reply: StringBuilder = StringBuilder()
+            reply.append(listOf("", "Bardzo Tobie", "Bardzo Ci").random())
+            if (reply.isNotEmpty()) {
+                reply.append(" ")
+                reply.append(listOf("Dziękuję", "Dzięki", "Dziękujemy").random())
+            } else {
+                reply.append(
+                    listOf(
+                        "Dziękuję Ci",
+                        "Dzięki Ci",
+                        "Dziękujemy Ci",
+                        "Dziękuję Tobie",
+                        "Dzięki Tobie",
+                        "Dziękujemy Tobie"
+                    ).random()
+                )
+            }
+            reply.append(listOf(".", "!", "!!").random())
             reply.append(" ")
-            reply.append(listOf("Dziękuję", "Dzięki", "Dziękujemy").random())
-        } else {
-            reply.append(listOf("Dziękuję Ci", "Dzięki Ci", "Dziękujemy Ci", "Dziękuję Tobie", "Dzięki Tobie", "Dziękujemy Tobie").random())
+            reply.append(listOf("<3", "(:", ":)", "").random())
+            reply.append(listOf("\n", "\n\n", " ").random())
+            reply.append("Link do mojej zbiórki: http://siepomaga.pl/raczka-kuby")
+            return reply.toString()
         }
-        reply.append(listOf(".", "!", "!!").random())
-        reply.append(" ")
-        reply.append(listOf("<3", "(:", ":)", "").random())
-        reply.append(listOf("\n", "\n\n", " ").random())
-        reply.append("Link do mojej zbiórki: http://siepomaga.pl/raczka-kuby")
-        return reply.toString()
     }
 
     fun checkIfAllCommentsContainAdminComment(comments: PagableList<Comment>) {

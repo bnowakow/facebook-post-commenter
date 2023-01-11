@@ -13,4 +13,5 @@ abstract class PropertiesReader(private val fileName: String) {
 }
 
 class Facebook4jProperties(): PropertiesReader("facebook4j.properties")
+class FacebookProperties(): PropertiesReader("facebook.properties")
 

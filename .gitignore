@@ -177,3 +177,5 @@ gradle-app.setting
 
 ### App-specyfic ones
 src/main/resources/facebook4j.properties
+src/main/resources/facebook.properties
+

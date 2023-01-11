@@ -15,10 +15,13 @@ fun main(args: Array<String>) {
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
     logger.info("got ${posts.size} posts")
 
+    val facebookSharedPosts: FacebookSharedPosts = FacebookSharedPosts()
+    facebookSharedPosts.loginToFacebook()
+
     // shared posts
     for (post in posts) {
 //        val sharedPosts = facebook.getSharedPosts(post.id)
-//        println("")
+        facebookSharedPosts.openSharedPosts(post.id)
     }
 
     // comments
