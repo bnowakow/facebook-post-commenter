@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
 
     val facebookSharedPosts: FacebookSharedPosts = FacebookSharedPosts()
     facebookSharedPosts.loginToFacebook()
+    facebookSharedPosts.switchProfileToFanPage()
 
     // shared posts
     for (post in posts) {
