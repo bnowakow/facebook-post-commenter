@@ -5,6 +5,10 @@
         </encoder>
     </appender>
 
+    <!-- TODO netty logging set to info -->
+    <logger name="FacebookSharedPosts" level="debug" />
+    <logger name="FacebookReplies" level="info" />
+
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>

@@ -9,20 +9,27 @@ fun main(args: Array<String>) {
     val facebook: Facebook = FacebookFactory().getInstance()
     val facebookReplies: FacebookReplies = FacebookReplies(facebook)
     val logger = KotlinLogging.logger {}
+    val facebookProperties: FacebookProperties = FacebookProperties()
 
     facebook.extendTokenExpiration()
 
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
     logger.info("got ${posts.size} posts")
 
-    val facebookSharedPosts: FacebookSharedPosts = FacebookSharedPosts()
-    facebookSharedPosts.loginToFacebook()
-    facebookSharedPosts.switchProfileToFanPage()
+    var facebookSharedPosts: FacebookSharedPosts? = null
+    if (facebookProperties.getProperty("workaround-enabled") === "true") {
+        facebookSharedPosts = FacebookSharedPosts()
+        facebookSharedPosts.loginToFacebook()
+        facebookSharedPosts.switchProfileToFanPage()
+    }
 
     // shared posts
     for (post in posts) {
-//        val sharedPosts = facebook.getSharedPosts(post.id)
-        facebookSharedPosts.openSharedPosts(post.id)
+//        val sharedPosts = facebook.getSharedPosts(post.id) // API
+        if (facebookProperties.getProperty("workaround-enabled") === "true" &&
+            facebookSharedPosts !== null) {
+            facebookSharedPosts.openSharedPosts(post.id) // Workaround
+        }
     }
 
     // comments
@@ -36,7 +43,8 @@ fun main(args: Array<String>) {
         "pfbid0gywSSeZKvCFomR5dELyr2ULFpk35SLHAaE5USdiMeyWw4H6bi5yLBVrHnnVN4tuEl"
     )
     for (adPost in adPosts) {
-        facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(facebook.getPost("105161449087504_" + adPost))
+        facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(
+            facebook.getPost("105161449087504_" + adPost))
     }
 
     logger.info("added comment to ${facebookReplies.commentedPosts.toString()} comments")
