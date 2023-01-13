@@ -3,9 +3,7 @@ import org.openqa.selenium.By
 import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.Keys
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
-import org.openqa.selenium.interactions.Actions
 
 
 class FacebookSharedPosts {
@@ -72,46 +70,43 @@ class FacebookSharedPosts {
         // scroll down to bottom of page to load all posts (lazy loading)
         val js = driver as JavascriptExecutor
         // TODO figure out how to verify if all posts have been loaded
-        var j = 200
+        var scrollTimeout = 200
 //        j = 12 // TODO debug
-        for (i in 1..j) {
+        var previousScrollHeight: Long = -1
+        for (scrollNumber in 1..scrollTimeout) {
             //Scroll down till the bottom of the page
             js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-            Thread.sleep(1000)
+            Thread.sleep(2000)
+            var currnetScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
+            if (currnetScrollHeight == previousScrollHeight) {
+                logger.info("\treached bottom of the page after ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
+                break
+            }
+            previousScrollHeight = currnetScrollHeight
             // TODO check if checking document height after scroll has changed, if not we reached bottom
-            if (i % 100 == 0 || i === 0) {
+            if (scrollNumber % 50 == 0 || scrollNumber == 0) {
                 // should be debug but can't set netty to info then
-                logger.info("\tscrolling for ${i}th time out of ${j.toString()} tries")
+                logger.info("\tscrolling for ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
             }
         }
 
+        // scroll to the top of page (focus is still at the bottom)
         js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
         Thread.sleep(1000)
 
-        if (facebookProperties.getProperty("username").contains("kuba")) {
-            // search box
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[2]/div/div/div/div[3]")).click()
-            // div containg all posts to move focus to some reachable element at the top
-            // oryginal post (admin's one)
-            Actions(driver).moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div")))
-                .perform()
-            // first shared post
-            Actions(driver).moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]")))
-                .perform()
-        } else {
-            // search box
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[2]/div[2]/div")).click()
-            // div containg all posts to move focus to some reachable element at the top
-            // oryginal post (admin's one)
-            Actions(driver).moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[1]")))
-                .perform()
-            // dif of all shared posts
-            Actions(driver).moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]")))
-                .perform()
-        }
-
         val beginingOfNextPostLocation = driver.pageSource.indexOf("Shared with Public</title>")
         if (beginingOfNextPostLocation > -1) {
+            if (facebookProperties.getProperty("username").contains("kuba")) {
+                // send tab from like of first post should bring back focus to the top
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"))
+                    .sendKeys(Keys.TAB)
+            } else {
+                // send tab from like of first post should bring back focus to the top
+                // TODO check if xpath is the same for this account
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"))
+                    .sendKeys(Keys.TAB)
+            }
+
             var pageSource: String = driver.pageSource.removeRange(0, beginingOfNextPostLocation)
 
             var commentNumber = 1
