@@ -1,3 +1,4 @@
+enabled=true
 debug=true
 oauth.appId=
 oauth.appSecret=

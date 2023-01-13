@@ -10,6 +10,7 @@ fun main(args: Array<String>) {
     val facebookReplies: FacebookReplies = FacebookReplies(facebook)
     val logger = KotlinLogging.logger {}
     val facebookProperties: FacebookProperties = FacebookProperties()
+    val facebook4jProperties: Facebook4jProperties = Facebook4jProperties()
 
     facebook.extendTokenExpiration()
 
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
     logger.info("got ${posts.size} posts")
 
     var facebookSharedPosts: FacebookSharedPosts? = null
-    if (facebookProperties.getProperty("workaround-enabled") === "true") {
+    if (facebookProperties.getProperty("workaround-enabled") == "true") {
         facebookSharedPosts = FacebookSharedPosts()
         facebookSharedPosts.loginToFacebook()
         facebookSharedPosts.switchProfileToFanPage()
@@ -26,7 +27,7 @@ fun main(args: Array<String>) {
     // shared posts
     for (post in posts) {
 //        val sharedPosts = facebook.getSharedPosts(post.id) // API
-        if (facebookProperties.getProperty("workaround-enabled") === "true" &&
+        if (facebookProperties.getProperty("workaround-enabled") == "true" &&
             facebookSharedPosts !== null) {
             facebookSharedPosts.openSharedPosts(post.id) // Workaround
         }
@@ -34,7 +35,9 @@ fun main(args: Array<String>) {
 
     // comments
     for (post in posts) {
-        facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
+        if (facebook4jProperties.getProperty("enabled") == "true") {
+            facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
+        }
     }
 
     // TODO figure out can we get id's of ad posts from API
@@ -43,8 +46,11 @@ fun main(args: Array<String>) {
         "pfbid0gywSSeZKvCFomR5dELyr2ULFpk35SLHAaE5USdiMeyWw4H6bi5yLBVrHnnVN4tuEl"
     )
     for (adPost in adPosts) {
-        facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(
-            facebook.getPost("105161449087504_" + adPost))
+        if (facebook4jProperties.getProperty("enabled") == "true") {
+            facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(
+                facebook.getPost("105161449087504_" + adPost)
+            )
+        }
     }
 
     logger.info("added comment to ${facebookReplies.commentedPosts.toString()} comments")
