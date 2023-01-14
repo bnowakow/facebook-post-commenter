@@ -25,8 +25,20 @@ fun main(args: Array<String>) {
     }
 
     for (post in posts) {
+        var messagePreview: String = ""
+        if (post.message !== null ) {
+            if (post.message.length > 30) {
+                messagePreview = post.message.substring(0, 30)
+            } else {
+                messagePreview = post.message
+            }
+        }
+
+        logger.info("in post [${messagePreview}...] ")
+
         // comments under posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
+            logger.info("\tlooking into comments under post")
             facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
         }
 
@@ -36,6 +48,7 @@ fun main(args: Array<String>) {
         // shared posts using workaround
         if (facebookProperties.getProperty("workaround-enabled") == "true" &&
             facebookSharedPosts !== null) {
+            logger.info("\tlooking into shared posts using workaround")
             facebookSharedPosts.openSharedPosts(post.id)
         }
     }

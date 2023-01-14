@@ -5,7 +5,7 @@ import mu.KotlinLogging
 class FacebookReplies(private val facebook: Facebook) {
 
     val commentedPosts: Int = 0
-    private val logger = KotlinLogging.logger {}
+    val logger = KotlinLogging.logger {}
 
     fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
         return comment?.from?.id == "105161449087504"; // Kuba
@@ -58,8 +58,6 @@ class FacebookReplies(private val facebook: Facebook) {
 
             if (!isCommentWrittenByOneOfAdmins(comment)) {
                 if (!isCommentRepliedByOneOfAdmins(comment)) {
-//                    println("\t\t\tcomment ${comment}");
-//                    println("comment ${comment} under post ${post.id}");
 
                     facebook.likePost(comment.id)
                     val replyMessage: String = randomizeThankYouReply()
@@ -79,16 +77,7 @@ class FacebookReplies(private val facebook: Facebook) {
         var commentLimitNumber: Int = 250
         var comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
 
-        var messagePreview: String = ""
-        if (post.message !== null ) {
-            if (post.message.length > 30) {
-                messagePreview = post.message.substring(0, 30)
-            } else {
-                messagePreview = post.message
-            }
-        }
-
-        logger.info("in post [${messagePreview}...] got ${comments.size} comments on first page with limit of ${commentLimitNumber}")
+        logger.info("\t\tgot ${comments.size} comments on first page with limit of ${commentLimitNumber}")
         check(commentLimitNumber > comments.size)
 
         // debug

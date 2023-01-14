@@ -83,7 +83,6 @@ class FacebookSharedPosts {
 
         val id = postId.substringAfter("_")
         // TODO get first words of post to log it alongside with id
-        logger.info("looking into shares of ${id} post")
         driver["https://www.facebook.com/shares/view?id=$id"]
         Thread.sleep(5000)
 
@@ -101,13 +100,13 @@ class FacebookSharedPosts {
             Thread.sleep(2000)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight == previousScrollHeight) {
-                logger.info("\treached bottom of the page after ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
+                logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
                 break
             }
             previousScrollHeight = currentScrollHeight
             if (scrollNumber % 50 == 0) {
                 // should be debugged but can't set netty to info then
-                logger.info("\tscrolling for ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
+                logger.info("\t\tscrolling for ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
             }
         }
 
@@ -145,13 +144,13 @@ class FacebookSharedPosts {
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\tpost ${postNumber}, next one is written by ${nextPostAuthor} can be commented")
+                    logger.debug("\t\tpost ${postNumber}, next one is written by ${nextPostAuthor} can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
-                        logger.debug("\t\tpost doesn't contain admin response")
+                        logger.debug("\t\t\tpost doesn't contain admin response")
                         val replyMessage: String = FacebookReplies.randomizeThankYouReply()
-                        logger.info("\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
+                        logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         try {
                             if (facebookProperties.getProperty("username").contains("kuba")) {
@@ -191,10 +190,10 @@ class FacebookSharedPosts {
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
-                        logger.info("\t\tsleeping for $numberOfSeconds seconds\n")
+                        logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
                         Thread.sleep(1000 * numberOfSeconds)
                     } else {
-                        logger.debug("\t\tpost contains admin response")
+                        logger.debug("\t\t\tpost contains admin response")
                         // TODO this breaks if there's longer post (i.e. with comments)
                         // TODO example is birth post no. 85
                         for (i in 1..20) {
@@ -203,7 +202,7 @@ class FacebookSharedPosts {
                         }
                     }
                 } else {
-                    logger.debug("\tpost ${postNumber}, next one is written by $nextPostAuthor can't be commented")
+                    logger.debug("\t\tpost ${postNumber}, next one is written by $nextPostAuthor can't be commented")
                     // TODO this breaks if there's longer post (i.e. with comments)
                     // TODO example is birth post no. 85
                     for (i in 1..8) {
@@ -216,7 +215,7 @@ class FacebookSharedPosts {
                 pageSource = pageSource.substringAfter("Shared with Public</title>")
             }
         } else {
-            logger.info("\tpost ${id} doesn't have any shared posts")
+            logger.info("\t\tpost doesn't have any shared posts")
         }
     }
 }
