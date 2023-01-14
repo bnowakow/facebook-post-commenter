@@ -7,11 +7,11 @@ class FacebookReplies(private val facebook: Facebook) {
     val commentedPosts: Int = 0
     val logger = KotlinLogging.logger {}
 
-    fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
-        return comment?.from?.id == "105161449087504"; // Kuba
+    private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
+        return comment.from?.id == "105161449087504" // Kuba
     }
 
-    fun isCommentRepliedByOneOfAdmins(comment: Comment): Boolean {
+    private fun isCommentRepliedByOneOfAdmins(comment: Comment): Boolean {
 
         val commentsOfComment: ResponseList<Comment> = facebook.getCommentReplies(comment.id)
 
@@ -19,10 +19,10 @@ class FacebookReplies(private val facebook: Facebook) {
         for (commentOfComment in commentsOfComment) {
             logger.debug("\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message}")
             if (isCommentWrittenByOneOfAdmins(commentOfComment)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     companion object {
@@ -53,7 +53,7 @@ class FacebookReplies(private val facebook: Facebook) {
         }
     }
 
-    fun checkIfAllCommentsContainAdminComment(comments: PagableList<Comment>) {
+    private fun checkIfAllCommentsContainAdminComment(comments: PagableList<Comment>) {
         for (comment in comments) {
 
             if (!isCommentWrittenByOneOfAdmins(comment)) {
@@ -66,7 +66,7 @@ class FacebookReplies(private val facebook: Facebook) {
                     commentedPosts.inc()
 
                     val numberOfSeconds: Long = (10..120).random().toLong()
-                    logger.info("\t\t\tsleeping for ${numberOfSeconds} seconds\n")
+                    logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
                     Thread.sleep(1000 * numberOfSeconds)
                 }
             }
@@ -74,10 +74,10 @@ class FacebookReplies(private val facebook: Facebook) {
     }
 
     fun checkIfAllCommentsUnderPostContainAdminComment(post: Post) {
-        var commentLimitNumber: Int = 250
-        var comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
+        val commentLimitNumber = 250
+        val comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
 
-        logger.info("\t\tgot ${comments.size} comments on first page with limit of ${commentLimitNumber}")
+        logger.info("\t\tgot ${comments.size} comments on first page with limit of $commentLimitNumber")
         check(commentLimitNumber > comments.size)
 
         // debug

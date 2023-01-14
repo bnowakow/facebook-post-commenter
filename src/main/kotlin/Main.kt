@@ -1,17 +1,15 @@
 import facebook4j.*
 import mu.KotlinLogging
 import pl.bnowakowski.facebook_commenter.FacebookPost
-import java.net.URL
-import java.util.*
 
 
-fun main(args: Array<String>) {
+fun main() {
 
-    val facebook: Facebook = FacebookFactory().getInstance()
-    val facebookReplies: FacebookReplies = FacebookReplies(facebook)
+    val facebook: Facebook = FacebookFactory().instance
+    val facebookReplies = FacebookReplies(facebook)
     val logger = KotlinLogging.logger {}
-    val facebookProperties: FacebookProperties = FacebookProperties()
-    val facebook4jProperties: Facebook4jProperties = Facebook4jProperties()
+    val facebookProperties = FacebookProperties()
+    val facebook4jProperties = Facebook4jProperties()
 
     facebook.extendTokenExpiration()
 
@@ -26,7 +24,7 @@ fun main(args: Array<String>) {
     }
 
     for (post in posts) {
-        logger.info("in post [${FacebookPost.Companion.previewMessage(post)}...] ")
+        logger.info("in post [${FacebookPost.previewMessage(post)}...] ")
 
         // comments under posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
@@ -55,7 +53,7 @@ fun main(args: Array<String>) {
 
     for (adPost in adPosts) {
         val post = facebook.getPost(adPost)
-        logger.info("in post [${FacebookPost.Companion.previewMessage(post)}...] ")
+        logger.info("in post [${FacebookPost.previewMessage(post)}...] ")
 
         // comments under ad posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
@@ -73,5 +71,5 @@ fun main(args: Array<String>) {
 //        }
     }
 
-    logger.info("added comment to ${facebookReplies.commentedPosts.toString()} comments")
+    logger.info("added comment to ${facebookReplies.commentedPosts} comments")
 }
