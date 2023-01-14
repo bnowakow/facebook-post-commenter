@@ -1,5 +1,6 @@
 import facebook4j.*
 import mu.KotlinLogging
+import pl.bnowakowski.facebook_commenter.FacebookPost
 import java.net.URL
 import java.util.*
 
@@ -15,7 +16,7 @@ fun main(args: Array<String>) {
     facebook.extendTokenExpiration()
 
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
-    logger.info("will be processing ${posts.size} posts:")
+    logger.info("will be processing ${posts.size} fan page posts:")
 
     var facebookSharedPosts: FacebookSharedPosts? = null
     if (facebookProperties.getProperty("workaround-enabled") == "true") {
@@ -25,16 +26,7 @@ fun main(args: Array<String>) {
     }
 
     for (post in posts) {
-        var messagePreview: String = ""
-        if (post.message !== null ) {
-            if (post.message.length > 30) {
-                messagePreview = post.message.substring(0, 30)
-            } else {
-                messagePreview = post.message
-            }
-        }
-
-        logger.info("in post [${messagePreview}...] ")
+        logger.info("in post [${FacebookPost.Companion.previewMessage(post)}...] ")
 
         // comments under posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
@@ -59,9 +51,15 @@ fun main(args: Array<String>) {
         "105161449087504_pfbid0gywSSeZKvCFomR5dELyr2ULFpk35SLHAaE5USdiMeyWw4H6bi5yLBVrHnnVN4tuEl"
     )
 
+    logger.info("will be processing ${adPosts.size} ad posts:")
+
     for (adPost in adPosts) {
+        val post = facebook.getPost(adPost)
+        logger.info("in post [${FacebookPost.Companion.previewMessage(post)}...] ")
+
         // comments under ad posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
+            logger.info("\tlooking into comments under post")
             facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(
                 facebook.getPost(adPost)
             )
