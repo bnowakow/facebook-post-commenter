@@ -3,8 +3,10 @@ package pl.bnowakowski.facebook_commenter.logging
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.CoreConstants
 import ch.qos.logback.core.LayoutBase;
+import java.lang.System.getProperty
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.*
 
 class LoggingLayout : LayoutBase<ILoggingEvent>() {
 
@@ -36,8 +38,13 @@ class LoggingLayout : LayoutBase<ILoggingEvent>() {
         if (event.loggerName == "FacebookSharedPosts") {
             sbuf.append("\t")
         }
+        // for some reason tabs works differenly between ubuntu in Docker and MacOS
         if (event.loggerName == "Main") {
-            sbuf.append("\t\t\t\t\t")
+            if (getProperty("os.name").lowercase(Locale.getDefault()).contains("linux")) {
+                sbuf.append("\t\t\t")
+            } else {
+                sbuf.append("\t\t\t\t\t")
+            }
         }
         sbuf.append(" - ");
         sbuf.append(event.formattedMessage);
