@@ -15,9 +15,9 @@ class FacebookReplies(private val facebook: Facebook) {
 
         val commentsOfComment: ResponseList<Comment> = facebook.getCommentReplies(comment.id)
 
-        logger.debug("\thas comment ${comment.message}")
+        logger.debug("\t\t\thas comment ${comment.message}")
         for (commentOfComment in commentsOfComment) {
-            logger.debug("\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message}")
+            logger.trace("\t\t\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message.replace("\n", "")}")
             if (isCommentWrittenByOneOfAdmins(commentOfComment)) {
                 return true
             }
@@ -88,11 +88,11 @@ class FacebookReplies(private val facebook: Facebook) {
 //        var paging3: Paging<Comment> = comments3.paging
         // \debug
 
-        checkIfAllCommentsContainAdminComment(comments)
-
 //        while (comments.paging?.next !== null) {
 //            var url: URL = comments.paging.next
 //            comments = facebook.fetchNext(comments.paging)
 //        }
+
+        checkIfAllCommentsContainAdminComment(comments)
     }
 }
