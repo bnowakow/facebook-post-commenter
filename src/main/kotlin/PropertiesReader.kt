@@ -1,7 +1,7 @@
 import java.util.*
 
-
-abstract class PropertiesReader(private val fileName: String) {
+// https://medium.com/@platky/very-simple-property-reading-in-kotlin-3265cb4382bf
+abstract class PropertiesReader(fileName: String) {
     private val properties = Properties()
 
     init {
@@ -12,6 +12,6 @@ abstract class PropertiesReader(private val fileName: String) {
     fun getProperty(key: String): String = properties.getProperty(key)
 }
 
-class Facebook4jProperties(): PropertiesReader("facebook4j.properties")
-class FacebookProperties(): PropertiesReader("facebook.properties")
+class Facebook4jProperties : PropertiesReader("facebook4j.properties")
+class FacebookProperties : PropertiesReader("facebook.properties")
 

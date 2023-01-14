@@ -1,17 +1,16 @@
 package pl.bnowakowski.facebook_commenter
 
-import facebook4j.Facebook
 import facebook4j.Post
 
-class FacebookPost() {
+class FacebookPost {
     companion object {
         fun previewMessage(post: Post): String {
-            var messagePreview: String = ""
+            var messagePreview = ""
             if (post.message !== null ) {
-                if (post.message.length > 30) {
-                    messagePreview = post.message.substring(0, 30)
+                messagePreview = if (post.message.length > 30) {
+                    post.message.substring(0, 30)
                 } else {
-                    messagePreview = post.message
+                    post.message
                 }
             }
 

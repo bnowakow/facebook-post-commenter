@@ -9,11 +9,11 @@ import kotlin.NoSuchElementException
 class FacebookSharedPosts {
 
     private var driver: WebDriver
-    val facebookProperties: FacebookProperties = FacebookProperties()
+    private val facebookProperties: FacebookProperties = FacebookProperties()
 
     private val logger = KotlinLogging.logger {}
 
-    constructor() {
+    init {
         // Firefox
         // https://www.browserstack.com/docs/automate/selenium/firefox-profile
         val firefoxProfile = FirefoxProfile()
@@ -23,7 +23,7 @@ class FacebookSharedPosts {
         val firefoxOptions = FirefoxOptions()
         firefoxOptions.addArguments("--width=1000")
         firefoxOptions.addArguments("--height=3440")
-        firefoxOptions.setProfile(firefoxProfile)
+        firefoxOptions.profile = firefoxProfile
 
         driver = FirefoxDriver(firefoxOptions)
         driver.manage().window().position = Point(800, 0)
@@ -100,13 +100,13 @@ class FacebookSharedPosts {
             Thread.sleep(2000)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight == previousScrollHeight) {
-                logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
+                logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
                 break
             }
             previousScrollHeight = currentScrollHeight
             if (scrollNumber % 50 == 0) {
                 // should be debugged but can't set netty to info then
-                logger.info("\t\tscrolling for ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
+                logger.info("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries")
             }
         }
 
@@ -144,7 +144,7 @@ class FacebookSharedPosts {
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost ${postNumber}, next one is written by ${nextPostAuthor} can be commented")
+                    logger.debug("\t\tpost ${postNumber}, next one is written by $nextPostAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
@@ -183,10 +183,10 @@ class FacebookSharedPosts {
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of ${id} post on ${postNumber}th post, next one is written by ${nextPostAuthor}")
+                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber}th post, next one is written by $nextPostAuthor")
                         } catch (e: Exception) {
                             logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of ${id} post on ${postNumber}th post , next one is written by ${nextPostAuthor}")
+                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber}th post , next one is written by $nextPostAuthor")
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
