@@ -1,27 +1,47 @@
 import mu.KotlinLogging
-import org.openqa.selenium.By
-import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.Keys
-import org.openqa.selenium.WebDriver
+import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.firefox.FirefoxOptions
+import org.openqa.selenium.firefox.FirefoxProfile
+import kotlin.NoSuchElementException
 
 
 class FacebookSharedPosts {
 
-//    val driver: WebDriver = ChromeDriver()
-    val driver: WebDriver = FirefoxDriver()
-//    val driver: WebDriver = SafariDriver()
-
+    var driver: WebDriver
     val facebookProperties: FacebookProperties = FacebookProperties()
 
     private val logger = KotlinLogging.logger {}
+
+    constructor() {
+        // Firefox
+        // https://www.browserstack.com/docs/automate/selenium/firefox-profile
+        val firefoxProfile = FirefoxProfile()
+//        firefoxProfile.setPreference("layout.css.devPixelsPerPx", "2.0")
+
+        // https://stackoverflow.com/questions/15397483/how-do-i-set-browser-width-and-height-in-selenium-webdriver
+        var firefoxOptions = FirefoxOptions()
+        firefoxOptions.addArguments("--width=1000")
+        firefoxOptions.addArguments("--height=3440")
+        firefoxOptions.setProfile(firefoxProfile)
+
+        driver = FirefoxDriver(firefoxOptions)
+        driver.manage().window().position = Point(800, 0)
+
+        driver["https://www.facebook.com"] // TODO debug
+//        driver.findElement(By.cssSelector("body")).sendKeys(Keys.chord(Keys.COMMAND, "-"))
+
+        // Chrome
+        //driver = ChromeDriver()
+
+        // Safari
+        //driver = SafariDriver()
+    }
+
     fun loginToFacebook() {
 
         val facebookProperties: FacebookProperties = FacebookProperties()
 
-//        System.setProperty("webdriver.chrome.driver", "Yourpath\\chromedriver.exe")
-
-//        driver.manage().window().maximize()
         driver["https://www.facebook.com"]
         driver.findElement(By.id("email")).sendKeys(facebookProperties.getProperty("username"))
         driver.findElement(By.id("pass")).sendKeys(facebookProperties.getProperty("password"))
@@ -67,9 +87,12 @@ class FacebookSharedPosts {
         driver["https://www.facebook.com/shares/view?id=$id"]
         Thread.sleep(5000)
 
-        // scroll down to bottom of page to load all posts (lazy loading)
         val js = driver as JavascriptExecutor
-        // TODO figure out how to verify if all posts have been loaded
+        // https://github.com/SeleniumHQ/selenium/issues/4244#issuecomment-371533758
+        js.executeScript("document.body.style.MozTransform = \"scale(0.80)\";")
+        js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
+
+        // scroll down to bottom of page to load all posts (lazy loading)
         var scrollTimeout = 200
 //        j = 12 // TODO debug
         var previousScrollHeight: Long = -1
@@ -83,7 +106,6 @@ class FacebookSharedPosts {
                 break
             }
             previousScrollHeight = currnetScrollHeight
-            // TODO check if checking document height after scroll has changed, if not we reached bottom
             if (scrollNumber % 50 == 0 || scrollNumber == 0) {
                 // should be debug but can't set netty to info then
                 logger.info("\tscrolling for ${scrollNumber}th time out of ${scrollTimeout.toString()} tries")
@@ -98,40 +120,39 @@ class FacebookSharedPosts {
         if (beginingOfNextPostLocation > -1) {
             if (facebookProperties.getProperty("username").contains("kuba")) {
                 // send tab from like of first post should bring back focus to the top
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"))
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]"))
                     .sendKeys(Keys.TAB)
             } else {
                 // send tab from like of first post should bring back focus to the top
                 // TODO check if xpath is the same for this account
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]"))
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]"))
                     .sendKeys(Keys.TAB)
             }
 
-            var pageSource: String = driver.pageSource.removeRange(0, beginingOfNextPostLocation)
+            var pageSource: String = driver.pageSource.substringAfter("Shared with Public</title>")
 
-            var commentNumber = 1
+            var postNumber = 1
             while (true) {
                 // TODO fix edge case for last comment
-                val secondCommentLinkPosition: Int = pageSource.indexOf("Shared with Public</title>", 1)
-                if (secondCommentLinkPosition == -1) {
+                val nextPostStartPosition: Int = pageSource.indexOf("Shared with Public</title>")
+                if (nextPostStartPosition == -1) {
                     break
                 }
                 //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to acces post made by others
-                var commentSource: String = pageSource.substring(0, secondCommentLinkPosition)
+                var postSource: String = pageSource.substringBefore("Shared with Public</title>")
                 // commentAuthor shows name of next post since we're spliting post by shared with public which occures after a post author
-                val commentAuthor: String =
-                    commentSource.removeRange(0, commentSource.indexOf("<a aria-label")).replace("<a aria-label=\"", "")
-                        .replaceAfter("\"", "").replace("\"", "")
-                var commentTextBoxPosition: Int = commentSource.indexOf("Write a comment")
+                val nextPostAuthor: String =
+                    postSource.substringAfter("<a aria-label=\"").substringBefore("\"")
+                var commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost ${commentNumber}, next one is written by ${commentAuthor} can be commented")
-                    val adminUsernamePosition = commentSource.indexOf("Kuba Dobrowolski-Nowakowski")
+                    logger.debug("\tpost ${postNumber}, next one is written by ${nextPostAuthor} can be commented")
+                    val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fanpage
-                        logger.debug("\t\t\tpost ${commentNumber}, next one is written by ${commentAuthor} doesn't contain admin response")
+                        logger.debug("\t\tpost doesn't contain admin response")
                         val replyMessage: String = FacebookReplies.Companion.randomizeThankYouReply()
-                        logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
+                        logger.info("\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         try {
                             if (facebookProperties.getProperty("username").contains("kuba")) {
@@ -142,39 +163,39 @@ class FacebookSharedPosts {
                                 for (letter in replyMessage.replace("\n", " ")) {
                                     // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or smth other)
                                     // TODO check if that fails if post has already one commment
-                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
                                     .sendKeys(Keys.RETURN)
                             } else {
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
                                     // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or smth other)
                                     // TODO check if that fails if post has already one commment
-                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
                                     .sendKeys(Keys.RETURN)
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of ${id} post on ${commentNumber}th post, next one is written by ${commentAuthor}")
+                            logger.error("NoSuchElementException exception has been thrown during processing of ${id} post on ${postNumber}th post, next one is written by ${nextPostAuthor}")
                         } catch (e: Exception) {
                             logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of ${id} post on ${commentNumber}th post , next one is written by ${commentAuthor}")
+                            logger.error("Exception exception has been thrown during processing of ${id} post on ${postNumber}th post , next one is written by ${nextPostAuthor}")
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
-                        logger.info("\t\t\tsleeping for ${numberOfSeconds} seconds\n")
+                        logger.info("\t\tsleeping for ${numberOfSeconds} seconds\n")
                         Thread.sleep(1000 * numberOfSeconds)
                     } else {
-                        logger.debug("\t\t\tpost ${commentNumber}, next one is written by ${commentAuthor} contains admin response")
+                        logger.debug("\t\tpost contains admin response")
                         // TODO this breaks if there's longer post (i.e. with comments)
                         // TODO example is birth post no. 85
                         for (i in 1..20) {
@@ -183,7 +204,7 @@ class FacebookSharedPosts {
                         }
                     }
                 } else {
-                    logger.debug("\t\tpost ${commentNumber}, next one is written by ${commentAuthor} can't be commented")
+                    logger.debug("\tpost ${postNumber}, next one is written by ${nextPostAuthor} can't be commented")
                     // TODO this breaks if there's longer post (i.e. with comments)
                     // TODO example is birth post no. 85
                     for (i in 1..8) {
@@ -192,8 +213,8 @@ class FacebookSharedPosts {
                     }
                 }
 
-                commentNumber++
-                pageSource = pageSource.removeRange(0, secondCommentLinkPosition)
+                postNumber++
+                pageSource = pageSource.substringAfter("Shared with Public</title>")
             }
         } else {
             logger.info("\tpost ${id} doesn't have any shared posts")
