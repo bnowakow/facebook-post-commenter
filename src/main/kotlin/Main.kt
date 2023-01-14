@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     facebook.extendTokenExpiration()
 
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
-    logger.info("got ${posts.size} posts")
+    logger.info("will be processing ${posts.size} posts:")
 
     var facebookSharedPosts: FacebookSharedPosts? = null
     if (facebookProperties.getProperty("workaround-enabled") == "true") {
