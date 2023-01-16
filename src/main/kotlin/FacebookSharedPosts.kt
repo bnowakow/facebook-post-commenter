@@ -3,6 +3,7 @@ import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
+import java.security.Key
 import kotlin.NoSuchElementException
 
 
@@ -79,6 +80,16 @@ class FacebookSharedPosts {
         Thread.sleep(2000)
     }
 
+    private fun canElementBeReachedAndPressTabOnIt(xpath: String): Boolean {
+        try {
+            driver.findElement(By.xpath(xpath)).sendKeys(Keys.TAB)
+//            driver.findElement(By.xpath(xpath)).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
     fun openSharedPosts(postId: String) {
 
         val id = postId.substringAfter("_")
@@ -92,12 +103,12 @@ class FacebookSharedPosts {
         js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 200
+        val scrollTimeout = 250
         var previousScrollHeight: Long = -1
         for (scrollNumber in 1..scrollTimeout) {
             //Scroll down till the bottom of the page
             js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-            Thread.sleep(2000)
+            Thread.sleep(3000)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight == previousScrollHeight) {
                 logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
@@ -118,8 +129,11 @@ class FacebookSharedPosts {
         if (beginningOfNextPostLocation > -1) {
             if (facebookProperties.getProperty("username").contains("kuba")) {
                 // send tab from like of first post should bring back focus to the top
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]"))
-                    .sendKeys(Keys.TAB)
+                if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
+                    if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
+                        throw Exception("couldn't press Tab on like in first post")
+                    }
+                }
             } else {
                 // send tab from like of first post should bring back focus to the top
                 // TODO check if xpath is the same for this account
