@@ -48,7 +48,8 @@ fun main() {
         "105161449087504_pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l",
         "105161449087504_pfbid0gywSSeZKvCFomR5dELyr2ULFpk35SLHAaE5USdiMeyWw4H6bi5yLBVrHnnVN4tuEl",
         "105161449087504_pfbid02QvbZbFUeYnwnktYc1Ryfi617mAMaJC6r655NxWENXF3VoqVRkE6DjhmdCrKZhoLQl",
-        "105161449087504_pfbid0VSV5LB9fjJNpas2RyCRgfEjYdV8hbyZ24pnxCNtWKuJFCdHuAoSs2DfgLDheCrDtl"
+        "105161449087504_pfbid0VSV5LB9fjJNpas2RyCRgfEjYdV8hbyZ24pnxCNtWKuJFCdHuAoSs2DfgLDheCrDtl",
+        "105161449087504_pfbid02Z7mnDhokm7qsKJKNHdE6xWxtJJSx2CaVRrGsxa9kLLFWiGBnnVHCFf9QX6eVQ54Ml"
     )
 
     logger.info("will be processing ${adPosts.size} ad posts:")

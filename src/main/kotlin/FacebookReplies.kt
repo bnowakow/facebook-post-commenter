@@ -62,8 +62,12 @@ class FacebookReplies(private val facebook: Facebook) {
                     facebook.likePost(comment.id)
                     val replyMessage: String = randomizeThankYouReply()
                     logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
-                    facebook.commentPost(comment.id, replyMessage)
-                    commentedPosts.inc()
+                    try {
+                        facebook.commentPost(comment.id, replyMessage)
+                        commentedPosts.inc()
+                    } catch (e: Exception) {
+                        logger.error(e.message)
+                    }
 
                     val numberOfSeconds: Long = (10..120).random().toLong()
                     logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
