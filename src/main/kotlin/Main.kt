@@ -50,7 +50,10 @@ fun main() {
         "105161449087504_pfbid02QvbZbFUeYnwnktYc1Ryfi617mAMaJC6r655NxWENXF3VoqVRkE6DjhmdCrKZhoLQl",
         "105161449087504_pfbid0VSV5LB9fjJNpas2RyCRgfEjYdV8hbyZ24pnxCNtWKuJFCdHuAoSs2DfgLDheCrDtl",
         "105161449087504_pfbid02Z7mnDhokm7qsKJKNHdE6xWxtJJSx2CaVRrGsxa9kLLFWiGBnnVHCFf9QX6eVQ54Ml",
-        "105161449087504_pfbid0V6B4jtcC67k8KtrL1UuFFexNVn7uNWr5psXiXnJSfxdqbLfuEs6Es3EragggRiVXl"
+        "105161449087504_pfbid0V6B4jtcC67k8KtrL1UuFFexNVn7uNWr5psXiXnJSfxdqbLfuEs6Es3EragggRiVXl",
+        "105161449087504_pfbid02kGQeR7Rvg73KXmW7PGRhWZWuTTHa9Vz3btLiDoZKg4qkvjGPUuD44RxAjTE4Uwjql",
+        "105161449087504_pfbid0MAHt4ALYF5u5rmwRYNAjVq1ZHLQr7H9Cnvm52CL1Hp7mScWjRmNgKAMQn5TngvrJl",
+        "105161449087504_pfbid02YmTmdRGH82g4ftA6GnNYRuuVxRU58qVnZYMHnqmybHuRS8Lm53v3AsEfvTsf8Wz4l"
     )
 
     logger.info("will be processing ${adPosts.size} ad posts:")
