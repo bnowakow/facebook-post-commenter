@@ -108,7 +108,11 @@ class FacebookSharedPosts {
         for (scrollNumber in 1..scrollTimeout) {
             //Scroll down till the bottom of the page
             js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-            Thread.sleep(3000)
+//            Thread.sleep(4000)
+            js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
+//            Thread.sleep(4000)
+            js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
+            Thread.sleep(8000)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight == previousScrollHeight) {
                 logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
@@ -172,15 +176,22 @@ class FacebookSharedPosts {
 //                              driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
 //                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
                                 // firefox
+                                var xpath = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
+                                if (!this.canElementBeReachedAndPressTabOnIt(xpath)) {
+                                    xpath = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]"
+                                    if (!this.canElementBeReachedAndPressTabOnIt(xpath)) {
+                                        xpath = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
+                                    }
+                                }
                                 for (letter in replyMessage.replace("\n", " ")) {
                                     // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or something other)
                                     // TODO check if that fails if post has already one comment
-                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                    driver.findElement(By.xpath(xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                driver.findElement(By.xpath(xpath))
                                     .sendKeys(Keys.RETURN)
                             } else {
                                 // firefox
