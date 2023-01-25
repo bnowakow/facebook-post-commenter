@@ -3,7 +3,6 @@ import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
-import java.security.Key
 import kotlin.NoSuchElementException
 
 
@@ -81,6 +80,7 @@ class FacebookSharedPosts {
     }
 
     private fun canElementBeReachedAndPressTabOnIt(xpath: String): Boolean {
+        logger.trace("\t\t\tcanElementBeReachedAndPressTabOnIt xpath=$xpath")
         try {
             driver.findElement(By.xpath(xpath)).sendKeys(Keys.TAB)
 //            driver.findElement(By.xpath(xpath)).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
@@ -106,14 +106,10 @@ class FacebookSharedPosts {
         val scrollTimeout = 250
         var previousScrollHeight: Long = -1
         for (scrollNumber in 1..scrollTimeout) {
-            //Scroll down till the bottom of the page
-            js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-//            Thread.sleep(4000)
-            js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-//            Thread.sleep(4000)
-            js.executeScript("window.scrollBy(0,document.body.scrollHeight)")
-            Thread.sleep(8000)
+            driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
+            Thread.sleep(1500)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
+            // TODO break also when detecting response from admin
             if (currentScrollHeight == previousScrollHeight) {
                 logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
                 break
@@ -127,10 +123,10 @@ class FacebookSharedPosts {
 
         // scroll to the top of page (focus is still at the bottom)
         js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
-        Thread.sleep(1000)
+        Thread.sleep(2000)
 
-        val beginningOfNextPostLocation = driver.pageSource.indexOf("Shared with Public</title>")
-        if (beginningOfNextPostLocation > -1) {
+        var pageSource: String = ""
+        if (driver.pageSource.indexOf("Shared with Public</title>") > -1) {
             if (facebookProperties.getProperty("username").contains("kuba")) {
                 // send tab from like of first post should bring back focus to the top
                 if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
@@ -138,31 +134,35 @@ class FacebookSharedPosts {
                         throw Exception("couldn't press Tab on like in first post")
                     }
                 }
+                // TODO check if locale of accounts are different and this causes below
+                // TODO this is broken for video since additional Enlarge is there
+                pageSource = driver.pageSource.substringAfter("People who shared this")
+                    .substringAfter("<a aria-label=\"")
             } else {
                 // send tab from like of first post should bring back focus to the top
                 // TODO check if xpath is the same for this account
                 driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]"))
                     .sendKeys(Keys.TAB)
+                // TODO check if locale of accounts are different and this causes below
+                pageSource = driver.pageSource.substringAfter("People Who Shared This")
+                    .substringAfter("<a aria-label=\"")
             }
 
-            var pageSource: String = driver.pageSource.substringAfter("Shared with Public</title>")
 
             var postNumber = 1
             while (true) {
                 // TODO fix edge case for last comment
-                val nextPostStartPosition: Int = pageSource.indexOf("Shared with Public</title>")
+                val nextPostStartPosition: Int = pageSource.indexOf("<a aria-label=\"")
                 if (nextPostStartPosition == -1) {
                     break
                 }
                 //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
-                val postSource: String = pageSource.substringBefore("Shared with Public</title>")
-                // commentAuthor shows name of next post since we're splitting post by shared with public which occurs after a post author
-                val nextPostAuthor: String =
-                    postSource.substringAfter("<a aria-label=\"").substringBefore("\"")
+                val postSource: String = pageSource.substringBefore("<a aria-label=\"")
+                val postAuthor: String = postSource.substringBefore("\"")
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost ${postNumber}, next one is written by $nextPostAuthor can be commented")
+                    logger.debug("\t\tpost ${postNumber} written by $postAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
@@ -170,19 +170,31 @@ class FacebookSharedPosts {
                         val replyMessage: String = FacebookReplies.randomizeThankYouReply()
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
+                        val commentTextFieldPossibleXpaths = ArrayList<String>()
+                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
+                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]")
+                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
+                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
+                        var xpath = ""
+                        val iter: Iterator<String> = commentTextFieldPossibleXpaths.iterator()
+                        while (iter.hasNext()) {
+                            xpath = iter.next()
+                            if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
+                                break
+                            } else {
+                                if (!iter.hasNext()) {
+                                    // last item
+                                    throw Exception("couldn't press Tab comment text box")
+                                }
+                            }
+                        }
+
                         try {
                             if (facebookProperties.getProperty("username").contains("kuba")) {
                                 // chrome
 //                              driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
 //                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
                                 // firefox
-                                var xpath = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
-                                if (!this.canElementBeReachedAndPressTabOnIt(xpath)) {
-                                    xpath = "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]"
-                                    if (!this.canElementBeReachedAndPressTabOnIt(xpath)) {
-                                        xpath = "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
-                                    }
-                                }
                                 for (letter in replyMessage.replace("\n", " ")) {
                                     // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or something other)
                                     // TODO check if that fails if post has already one comment
@@ -198,20 +210,20 @@ class FacebookSharedPosts {
                                 for (letter in replyMessage.replace("\n", " ")) {
                                     // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or something other)
                                     // TODO check if that fails if post has already one comment
-                                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                    driver.findElement(By.xpath(xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
+                                driver.findElement(By.xpath(xpath))
                                     .sendKeys(Keys.RETURN)
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber}th post, next one is written by $nextPostAuthor")
+                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber}th post written by $postAuthor")
                         } catch (e: Exception) {
                             logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber}th post , next one is written by $nextPostAuthor")
+                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber}th post written by $postAuthor")
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
@@ -227,7 +239,7 @@ class FacebookSharedPosts {
                         }
                     }
                 } else {
-                    logger.debug("\t\tpost ${postNumber}, next one is written by $nextPostAuthor can't be commented")
+                    logger.debug("\t\tpost ${postNumber} written by $postAuthor can't be commented")
                     // TODO this breaks if there's longer post (i.e. with comments)
                     // TODO example is birth post no. 85
                     for (i in 1..8) {
@@ -237,7 +249,7 @@ class FacebookSharedPosts {
                 }
 
                 postNumber++
-                pageSource = pageSource.substringAfter("Shared with Public</title>")
+                pageSource = pageSource.substringAfter("<a aria-label=\"")
             }
         } else {
             logger.info("\t\tpost doesn't have any shared posts")
