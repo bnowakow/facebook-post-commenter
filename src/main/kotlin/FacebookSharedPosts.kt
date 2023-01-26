@@ -150,6 +150,7 @@ class FacebookSharedPosts {
                     .substringAfter("<a aria-label=\"")
             }
 
+            pageSource = pageSource.replace("<a aria-label=\"Click to view attachment\"", "")
 
             var postNumber = 1
             while (true) {
