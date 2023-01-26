@@ -137,6 +137,7 @@ class FacebookSharedPosts {
                 // TODO check if locale of accounts are different and this causes below
                 // TODO this is broken for video since additional Enlarge is there
                 pageSource = driver.pageSource.substringAfter("People who shared this")
+                    .substringAfter("Enlarge")  // for video
                     .substringAfter("<a aria-label=\"")
             } else {
                 // send tab from like of first post should bring back focus to the top
@@ -145,6 +146,7 @@ class FacebookSharedPosts {
                     .sendKeys(Keys.TAB)
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People Who Shared This")
+                    .substringAfter("Enlarge")  // for video
                     .substringAfter("<a aria-label=\"")
             }
 
