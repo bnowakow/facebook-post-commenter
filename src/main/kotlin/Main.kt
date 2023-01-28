@@ -11,6 +11,9 @@ fun main() {
     val facebookProperties = FacebookProperties()
     val facebook4jProperties = Facebook4jProperties()
 
+    // TODO automate inviting people liking page to join grou
+    // TODO find notification with people sharing fanpage (orange flag icon in notification) and comment it
+
     facebook.extendTokenExpiration()
 
     val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
@@ -56,7 +59,8 @@ fun main() {
         "105161449087504_pfbid02YmTmdRGH82g4ftA6GnNYRuuVxRU58qVnZYMHnqmybHuRS8Lm53v3AsEfvTsf8Wz4l",
         "105161449087504_1172046396767560",
         "105161449087504_pfbid0L8t5oum9D78tfeFybVqr8yDgU2WLAvUdMYznMa5n5cKHH4bvTKLNbkKYCxKJgNtHl",
-        "105161449087504_pfbid02PYSh1VNnQ88X6U7mBTfQHvUqBW5ZbRiXZ9Di5WfzwLmVPEoAe7gPrjDmZ5YCATMHl"
+        "105161449087504_pfbid02PYSh1VNnQ88X6U7mBTfQHvUqBW5ZbRiXZ9Di5WfzwLmVPEoAe7gPrjDmZ5YCATMHl",
+        "105161449087504_pfbid02PrFDGzgFQ7iiMJ8tpEAtW56weVYahCBTZQeZfHPzfJo3ssJo5AoaGYSbtPaEDcyZl"
     )
 
     logger.info("will be processing ${adPosts.size} ad posts:")
