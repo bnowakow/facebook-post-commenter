@@ -89,5 +89,12 @@ fun main() {
         postNumber++
     }
 
-    logger.info("added comment to ${facebookReplies.commentedPosts} comments via API")
+    if (facebook4jProperties.getProperty("enabled") == "true") {
+        logger.info("added comment to ${facebookReplies.commentedPosts} comments via API")
+    }
+    if (facebookProperties.getProperty("workaround-enabled") == "true" &&
+        facebookSharedPosts !== null) {
+        logger.info("added comment to ${facebookSharedPosts.commentedPosts} comments via shared posts workaround")
+    }
+
 }

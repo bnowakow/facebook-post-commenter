@@ -5,7 +5,7 @@ import mu.KotlinLogging
 class FacebookReplies(private val facebook: Facebook) {
 
     var commentedPosts = 0
-    val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger {}
 
     private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
         return comment.from?.id == "105161449087504" // Kuba

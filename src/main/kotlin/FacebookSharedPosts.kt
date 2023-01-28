@@ -10,6 +10,7 @@ class FacebookSharedPosts {
 
     private var driver: WebDriver
     private val facebookProperties: FacebookProperties = FacebookProperties()
+    var commentedPosts = 0
 
     private val logger = KotlinLogging.logger {}
 
@@ -81,12 +82,12 @@ class FacebookSharedPosts {
 
     private fun canElementBeReachedAndPressTabOnIt(xpath: String): Boolean {
         logger.trace("\t\t\tcanElementBeReachedAndPressTabOnIt xpath=$xpath")
-        try {
+        return try {
             driver.findElement(By.xpath(xpath)).sendKeys(Keys.TAB)
-//            driver.findElement(By.xpath(xpath)).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
-            return true
+    //            driver.findElement(By.xpath(xpath)).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
+            true
         } catch (e: Exception) {
-            return false
+            false
         }
     }
 
@@ -125,7 +126,7 @@ class FacebookSharedPosts {
         js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
         Thread.sleep(2000)
 
-        var pageSource: String = ""
+        var pageSource: String
         if (driver.pageSource.indexOf("Shared with Public</title>") > -1) {
             if (facebookProperties.getProperty("username").contains("kuba")) {
                 // send tab from like of first post should bring back focus to the top
@@ -165,7 +166,7 @@ class FacebookSharedPosts {
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost ${postNumber} written by $postAuthor can be commented")
+                    logger.debug("\t\tpost $postNumber written by $postAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
@@ -208,6 +209,8 @@ class FacebookSharedPosts {
                                 Thread.sleep(500)
                                 driver.findElement(By.xpath(xpath))
                                     .sendKeys(Keys.RETURN)
+
+                                commentedPosts++
                             } else {
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
@@ -220,6 +223,8 @@ class FacebookSharedPosts {
                                 Thread.sleep(500)
                                 driver.findElement(By.xpath(xpath))
                                     .sendKeys(Keys.RETURN)
+
+                                commentedPosts++
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
@@ -242,7 +247,7 @@ class FacebookSharedPosts {
                         }
                     }
                 } else {
-                    logger.debug("\t\tpost ${postNumber} written by $postAuthor can't be commented")
+                    logger.debug("\t\tpost $postNumber written by $postAuthor can't be commented")
                     // TODO this breaks if there's longer post (i.e. with comments)
                     // TODO example is birth post no. 85
                     for (i in 1..8) {
