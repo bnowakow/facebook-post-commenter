@@ -31,6 +31,7 @@ fun main() {
         logger.info("in ${postNumber}th post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under posts via API
+        // TODO this will fail with property absent in file
         if (facebook4jProperties.getProperty("enabled") == "true") {
             logger.info("\tlooking into comments under post")
             facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
@@ -40,6 +41,7 @@ fun main() {
         //  val sharedPosts = facebook.getSharedPosts(post.id) // API
 
         // shared posts using workaround
+        // TODO checking if value is not null is not elegant (it's done because when object is created browser window is spawned which is not necessary when only API is used)
         if (facebookProperties.getProperty("workaround-enabled") == "true" &&
             facebookSharedPosts !== null) {
             logger.info("\tlooking into shared posts using workaround")
