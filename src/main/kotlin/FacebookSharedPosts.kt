@@ -51,7 +51,7 @@ class FacebookSharedPosts {
         driver.findElement(By.className("_9xo6")).click()
         // login button
         driver.findElement(By.name("login")).click()
-        Thread.sleep(5000)
+        Thread.sleep(6000)
     }
 
     fun switchProfileToFanPage() {
@@ -100,7 +100,7 @@ class FacebookSharedPosts {
 
         val js = driver as JavascriptExecutor
         // https://github.com/SeleniumHQ/selenium/issues/4244#issuecomment-371533758
-        js.executeScript("document.body.style.MozTransform = \"scale(0.80)\";")
+        js.executeScript("document.body.style.MozTransform = \"scale(0.60)\";")
         js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
 
         // scroll down to bottom of page to load all posts (lazy loading)
@@ -174,11 +174,12 @@ class FacebookSharedPosts {
                         val replyMessage: String = FacebookReplies.randomizeThankYouReply()
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
-                        val commentTextFieldPossibleXpaths = ArrayList<String>()
-                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
-                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]")
-                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
-                        commentTextFieldPossibleXpaths.add("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]")
+                        val commentTextFieldPossibleXpaths : List<String> = listOf(
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
+                        )
                         var xpath = ""
                         val iter: Iterator<String> = commentTextFieldPossibleXpaths.iterator()
                         while (iter.hasNext()) {
