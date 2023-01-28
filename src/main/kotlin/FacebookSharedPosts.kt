@@ -141,9 +141,12 @@ class FacebookSharedPosts {
                     .substringAfter("<a aria-label=\"")
             } else {
                 // send tab from like of first post should bring back focus to the top
-                // TODO check if xpath is the same for this account
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]"))
-                    .sendKeys(Keys.TAB)
+                if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
+                    if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
+                        throw Exception("couldn't press Tab on like in first post")
+                    }
+                }
+
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People Who Shared This")
                     .substringAfter("Enlarge")  // for video
