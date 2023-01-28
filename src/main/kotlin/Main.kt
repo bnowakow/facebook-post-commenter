@@ -28,7 +28,7 @@ fun main() {
 
     var postNumber = 1
     for (post in posts) {
-        logger.info("in ${postNumber}th post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+        logger.info("in ${postNumber}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under posts via API
         // TODO this will fail with property absent in file
@@ -72,7 +72,7 @@ fun main() {
     postNumber = 1
     for (adPostId in adPostIds) {
         val post = facebook.getPost(adPostId)
-        logger.info("in ${postNumber}th ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+        logger.info("in ${postNumber}/${adPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under ad posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {

@@ -29,7 +29,7 @@ class FacebookSharedPosts {
         driver = FirefoxDriver(firefoxOptions)
         driver.manage().window().position = Point(800, 0)
 
-        driver["https://www.facebook.com"] // TODO debug
+        driver["https://www.facebook.com"]
 //        driver.findElement(By.cssSelector("body")).sendKeys(Keys.chord(Keys.COMMAND, "-"))
 
         // Chrome
@@ -100,7 +100,7 @@ class FacebookSharedPosts {
 
         val js = driver as JavascriptExecutor
         // https://github.com/SeleniumHQ/selenium/issues/4244#issuecomment-371533758
-        js.executeScript("document.body.style.MozTransform = \"scale(0.60)\";")
+        js.executeScript("document.body.style.MozTransform = \"scale(0.55)\";")
         js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
 
         // scroll down to bottom of page to load all posts (lazy loading)
@@ -111,7 +111,7 @@ class FacebookSharedPosts {
             Thread.sleep(1500)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             // TODO break also when detecting response from admin
-            if (currentScrollHeight == previousScrollHeight) {
+            if (currentScrollHeight <= previousScrollHeight) {
                 logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
                 break
             }
@@ -136,7 +136,6 @@ class FacebookSharedPosts {
                     }
                 }
                 // TODO check if locale of accounts are different and this causes below
-                // TODO this is broken for video since additional Enlarge is there
                 pageSource = driver.pageSource.substringAfter("People who shared this")
                     .substringAfter("Enlarge")  // for video
                     .substringAfter("<a aria-label=\"")
@@ -153,6 +152,7 @@ class FacebookSharedPosts {
 
             pageSource = pageSource.replace("<a aria-label=\"Click to view attachment\"", "")
 
+            val totalPostNumber = pageSource.split("<a aria-label=\"").size
             var postNumber = 1
             while (true) {
                 // TODO fix edge case for last comment
@@ -166,7 +166,7 @@ class FacebookSharedPosts {
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost $postNumber written by $postAuthor can be commented")
+                    logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
@@ -201,8 +201,6 @@ class FacebookSharedPosts {
 //                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
-                                    // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or something other)
-                                    // TODO check if that fails if post has already one comment
                                     driver.findElement(By.xpath(xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
@@ -215,8 +213,6 @@ class FacebookSharedPosts {
                             } else {
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
-                                    // TODO this breaks for some rare kind of post (maybe ones with commenting turned off text or something other)
-                                    // TODO check if that fails if post has already one comment
                                     driver.findElement(By.xpath(xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
@@ -229,10 +225,10 @@ class FacebookSharedPosts {
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber}th post written by $postAuthor")
+                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber} post written by $postAuthor")
                         } catch (e: Exception) {
                             logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber}th post written by $postAuthor")
+                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber} post written by $postAuthor")
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
@@ -240,17 +236,13 @@ class FacebookSharedPosts {
                         Thread.sleep(1000 * numberOfSeconds)
                     } else {
                         logger.debug("\t\t\tpost contains admin response")
-                        // TODO this breaks if there's longer post (i.e. with comments)
-                        // TODO example is birth post no. 85
                         for (i in 1..20) {
                             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
                             Thread.sleep(5)
                         }
                     }
                 } else {
-                    logger.debug("\t\tpost $postNumber written by $postAuthor can't be commented")
-                    // TODO this breaks if there's longer post (i.e. with comments)
-                    // TODO example is birth post no. 85
+                    logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can't be commented")
                     for (i in 1..8) {
                         driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
                         Thread.sleep(5)
