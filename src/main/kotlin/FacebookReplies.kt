@@ -4,7 +4,7 @@ import mu.KotlinLogging
 
 class FacebookReplies(private val facebook: Facebook) {
 
-    val commentedPosts: Int = 0
+    var commentedPosts = 0
     val logger = KotlinLogging.logger {}
 
     private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
@@ -64,7 +64,7 @@ class FacebookReplies(private val facebook: Facebook) {
                     logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
                     try {
                         facebook.commentPost(comment.id, replyMessage)
-                        commentedPosts.inc()
+                        commentedPosts++
                     } catch (e: Exception) {
                         logger.error(e.message)
                     }
