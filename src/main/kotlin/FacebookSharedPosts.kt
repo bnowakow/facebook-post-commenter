@@ -124,7 +124,7 @@ class FacebookSharedPosts {
 
         // scroll to the top of page (focus is still at the bottom)
         js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
-        Thread.sleep(2000)
+        Thread.sleep(4000)
 
         var pageSource: String
         if (driver.pageSource.indexOf("Shared with Public</title>") > -1) {
