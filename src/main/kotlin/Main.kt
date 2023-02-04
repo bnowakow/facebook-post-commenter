@@ -66,6 +66,9 @@ fun main() {
         "105161449087504_pfbid02PYSh1VNnQ88X6U7mBTfQHvUqBW5ZbRiXZ9Di5WfzwLmVPEoAe7gPrjDmZ5YCATMHl",     // 6
 //        "105161449087504_pfbid02PrFDGzgFQ7iiMJ8tpEAtW56weVYahCBTZQeZfHPzfJo3ssJo5AoaGYSbtPaEDcyZl"    // duplicate of 6
 //        "105161449087504_pfbid02Pg6CyrQWakevfJ71eQbaLCc5Lpi2g4spGd9kGvdvzWZZTJ3SadBZgU1M7zQYTM7nl"    // duplicate of 6
+//        "105161449087504_pfbid0L8T24gn9jPXEjFw98pEjTbnf846HprSVeRQNCf3RyXXYToMWv9BtU7rvuWYQCc1Yl",    // duplicate of 6
+//        "105161449087504_pfbid0KxJ1mYWQuyoquoxxT78DCKqshatPaR3uCkhYsA6w4KFEqSjKShXEDWExAgtsGwdml",    // duplicate of 6
+//        "105161449087504_pfbid02PojixDSEmRUoPtS5j4CwTSdH3tJi5GHiJNGxDdHMnZyzCoxps7BDcBtYqRmdp21Ml",   // duplicate of 6
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")
