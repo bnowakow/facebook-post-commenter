@@ -5,9 +5,9 @@ ENV APP_HOME=/app
 WORKDIR $APP_HOME
 COPY build.gradle.kts gradle.properties gradlew $APP_HOME
 COPY gradle $APP_HOME/gradle
-RUN ./gradlew --console verbose --full-stacktrace shadowJar || return 0
+RUN ./gradlew --build-cache --console verbose --full-stacktrace shadowJar || return 0
 COPY . .
-RUN ./gradlew --console verbose --full-stacktrace shadowJar
+RUN ./gradlew --build-cache --console verbose --full-stacktrace shadowJar
 
 FROM gradle:jdk17
 
