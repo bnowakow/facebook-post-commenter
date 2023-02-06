@@ -46,9 +46,9 @@ class FacebookSharedPosts {
         driver["https://www.facebook.com"]
         driver.findElement(By.id("email")).sendKeys(facebookProperties.getProperty("username"))
         driver.findElement(By.id("pass")).sendKeys(facebookProperties.getProperty("password"))
-        Thread.sleep(500)
         // cookie form
         driver.findElement(By.className("_9xo6")).click()
+        Thread.sleep(500)
         // login button
         driver.findElement(By.name("login")).click()
         Thread.sleep(6000)
@@ -144,6 +144,7 @@ class FacebookSharedPosts {
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People who shared this")
                     .substringAfter("Enlarge")  // for video
+                    .replace("<a aria-label=\"May be an image of", "")
                     .substringAfter("<a aria-label=\"")
             } else {
                 // send tab from like of first post should bring back focus to the top
@@ -156,6 +157,7 @@ class FacebookSharedPosts {
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People Who Shared This")
                     .substringAfter("Enlarge")  // for video
+                    .replace("<a aria-label=\"May be an image of", "")
                     .substringAfter("<a aria-label=\"")
             }
 
@@ -184,10 +186,11 @@ class FacebookSharedPosts {
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         val commentTextFieldPossibleXpaths : List<String> = listOf(
-                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                         )
                         var xpath = ""
                         val iter: Iterator<String> = commentTextFieldPossibleXpaths.iterator()
