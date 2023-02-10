@@ -65,12 +65,13 @@ fun main() {
         "105161449087504_pfbid0L8t5oum9D78tfeFybVqr8yDgU2WLAvUdMYznMa5n5cKHH4bvTKLNbkKYCxKJgNtHl",      // 5
         "105161449087504_pfbid02PYSh1VNnQ88X6U7mBTfQHvUqBW5ZbRiXZ9Di5WfzwLmVPEoAe7gPrjDmZ5YCATMHl",     // 6
 //        "105161449087504_pfbid02PrFDGzgFQ7iiMJ8tpEAtW56weVYahCBTZQeZfHPzfJo3ssJo5AoaGYSbtPaEDcyZl"    // duplicate of 6
-//        "10516144908750x4_pfbid02Pg6CyrQWakevfJ71eQbaLCc5Lpi2g4spGd9kGvdvzWZZTJ3SadBZgU1M7zQYTM7nl"    // duplicate of 6
+//        "10516144908750x4_pfbid02Pg6CyrQWakevfJ71eQbaLCc5Lpi2g4spGd9kGvdvzWZZTJ3SadBZgU1M7zQYTM7nl"   // duplicate of 6
 //        "105161449087504_pfbid0L8T24gn9jPXEjFw98pEjTbnf846HprSVeRQNCf3RyXXYToMWv9BtU7rvuWYQCc1Yl",    // duplicate of 6
 //        "105161449087504_pfbid0KxJ1mYWQuyoquoxxT78DCKqshatPaR3uCkhYsA6w4KFEqSjKShXEDWExAgtsGwdml",    // duplicate of 6
 //        "105161449087504_pfbid02PojixDSEmRUoPtS5j4CwTSdH3tJi5GHiJNGxDdHMnZyzCoxps7BDcBtYqRmdp21Ml",   // duplicate of 6
 //        "105161449087504_pfbid02Pdaif5AVwjqhWMUpNLnewRsXcq2TqdopJxjV79jMhNZRxXN35SYK5RrrbmCB5858l",   // duplicate of 6
-        "105161449087504_pfbid0oyzqNdh1peTiGK2bsTLBNRReWDQ29iZT6JjmiSSoXrBuzuq7jD8czBZ2i1LaE5Val",   // 7
+        "105161449087504_pfbid0oyzqNdh1peTiGK2bsTLBNRReWDQ29iZT6JjmiSSoXrBuzuq7jD8czBZ2i1LaE5Val",      // 7
+//        "105161449087504_pfbid0ooqq5VRGzyVkPoY2QdeAfEu8LUkrx1pD8sGVTjRbqWZnZqre9xDjD9Nx3G9HHsh1l",    // duplicate of 7
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")

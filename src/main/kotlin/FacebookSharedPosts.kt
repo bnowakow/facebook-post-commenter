@@ -141,11 +141,9 @@ class FacebookSharedPosts {
                         throw Exception("couldn't press Tab on like in first post")
                     }
                 }
+
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People who shared this")
-                    .substringAfter("Enlarge")  // for video
-                    .replace("<a aria-label=\"May be an image of", "")
-                    .substringAfter("<a aria-label=\"")
             } else {
                 // send tab from like of first post should bring back focus to the top
                 if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
@@ -154,14 +152,24 @@ class FacebookSharedPosts {
                     }
                 }
 
-                // TODO check if locale of accounts are different and this causes below
+                // TODO check if locale of accounts are different and this causes below - UK?
                 pageSource = driver.pageSource.substringAfter("People Who Shared This")
-                    .substringAfter("Enlarge")  // for video
-                    .replace("<a aria-label=\"May be an image of", "")
-                    .substringAfter("<a aria-label=\"")
             }
 
-            pageSource = pageSource.replace("<a aria-label=\"Click to view attachment\"", "")
+            pageSource = pageSource
+                .substringAfter("Enlarge")  // for video
+                .replace("<a aria-label=\"May be an image of", "")
+                .replace("<a aria-label=\"Home", "")
+                .replace("<a aria-label=\"Watch", "")
+                .replace("<a aria-label=\"Groups", "")
+                .replace("<a aria-label=\"Gaming", "")
+                .replace("<a aria-label=\"Events", "")
+                .replace("<a aria-label=\"More", "")
+                .replace("<a aria-label=\"Notifications", "")
+                .replace("<a aria-label=\"Messenger", "")
+                .replace("<a aria-label=\"Messenger", "")
+                .replace("<a aria-label=\"Click to view attachment\"", "")
+                .substringAfter("<a aria-label=\"")
 
             val totalPostNumber = pageSource.split("<a aria-label=\"").size
             var postNumber = 1
