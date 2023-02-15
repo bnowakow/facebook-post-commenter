@@ -100,7 +100,6 @@ class FacebookSharedPosts {
     fun openSharedPosts(postId: String) {
 
         val id = postId.substringAfter("_")
-        // TODO get first words of post to log it alongside with id
         driver["https://www.facebook.com/shares/view?id=$id"]
         Thread.sleep(5000)
 
@@ -110,16 +109,27 @@ class FacebookSharedPosts {
         js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 250
+        val scrollTimeout = 350
         var previousScrollHeight: Long = -1
+        var previousNumberOfSegments: Int = -1
+        var currentNumberOfSegments: Int = -1
+        var numberOfConfirmatinos: Long = 0
         for (scrollNumber in 1..scrollTimeout) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
-            Thread.sleep(1500)
+            Thread.sleep(500)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
-            // TODO break also when detecting response from admin
             if (currentScrollHeight <= previousScrollHeight) {
-                logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
-                break
+                currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
+                if (currentNumberOfSegments <= previousNumberOfSegments) {
+                    numberOfConfirmatinos++
+                    if (numberOfConfirmatinos > 2) {
+                        logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
+                        break
+                    }
+                } else {
+                    numberOfConfirmatinos = 0
+                }
+                previousNumberOfSegments = currentNumberOfSegments
             }
             previousScrollHeight = currentScrollHeight
             if (scrollNumber % 50 == 0) {
