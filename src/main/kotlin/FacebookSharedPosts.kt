@@ -112,7 +112,7 @@ class FacebookSharedPosts {
         val scrollTimeout = 350
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
-        var currentNumberOfSegments: Int = -1
+        var currentNumberOfSegments: Int
         var numberOfConfirmatinos: Long = 0
         for (scrollNumber in 1..scrollTimeout) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
@@ -255,10 +255,10 @@ class FacebookSharedPosts {
                             }
                         } catch (e: NoSuchElementException) {
                             logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on ${postNumber} post written by $postAuthor")
+                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
                         } catch (e: Exception) {
                             logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of $id post on ${postNumber} post written by $postAuthor")
+                            logger.error("Exception exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
                         }
 
                         val numberOfSeconds: Long = (10..120).random().toLong()
