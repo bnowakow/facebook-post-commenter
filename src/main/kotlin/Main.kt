@@ -16,40 +16,11 @@ fun main() {
 
     facebook.extendTokenExpiration()
 
-    val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
-    logger.info("will be processing ${posts.size} fan page posts:")
-
-    var facebookSharedPosts: FacebookSharedPosts? = null
-    if (facebookProperties.getProperty("workaround-enabled") == "true") {
-        facebookSharedPosts = FacebookSharedPosts()
-        facebookSharedPosts.loginToFacebook()
-        facebookSharedPosts.switchProfileToFanPage()
-    }
+    /************************
+     * Ad Posts
+     ***********************/
 
     var postNumber = 1
-    for (post in posts) {
-        logger.info("in ${postNumber}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
-
-        // comments under posts via API
-        // TODO this will fail with property absent in file
-        if (facebook4jProperties.getProperty("enabled") == "true") {
-            logger.info("\tlooking into comments under post")
-            facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
-        }
-
-        // shared posts via API
-        //  val sharedPosts = facebook.getSharedPosts(post.id) // API
-
-        // shared posts using workaround
-        // TODO checking if value is not null is not elegant (it's done because when object is created browser window is spawned which is not necessary when only API is used)
-        if (facebookProperties.getProperty("workaround-enabled") == "true" &&
-            facebookSharedPosts !== null) {
-            logger.info("\tlooking into shared posts using workaround")
-            facebookSharedPosts.openSharedPosts(post.id)
-        }
-        postNumber++
-    }
-
     // TODO figure out can we get id's of ad posts from API
     val adPostIds: List<String> = listOf(
         "105161449087504_pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l",         // 1
@@ -78,11 +49,17 @@ fun main() {
 //        "105161449087504_pfbid02snw4EXNq3AgYv72ai7NwxJocbsfCjGz3wwzzk9xq4ErRuP7BUQ1sNAfGT93r2MYdl",       // duplicate of 7
 //        "105161449087504_pfbid02scn3wP76DSTLLaqSntN3MBTnNS7PDFbZcDEfh94eRPj9agx1nhcWSuiQ3P3kCp5Yl",       // duplicate of 7
         "105161449087504_pfbid02PmtVH17t6Vcu811B4KvrBodB4ZdJ5PhwD9VdsrF69kpakZnaPeKzp4WRqUTR3q92l",         // 8
+//        "105161449087504_pfbid02PbjUyrr9GtXAvVnDzvYJ26s41eBpqfnn3mFcdPNWBdkZcMPDPH6F2vU5anmwYJEBl",       // duplicate of 8
+//        "105161449087504_pfbid0L46J4hDnRkHUVkzn2ZUoatFFfM8KE63SJegAkXv84UDiz9d6fKHH7P2XniENTSN8l",        // duplicate of 8
+//        "105161449087504_pfbid02PuY1FN9cH8aaPsaSyZ4LLx2WXEjT9DtrCUkVm2WKE2p2hf3EnDK6RK1Ts8ESwcWfl",       // duplicate of 8
+//        "105161449087504_pfbid0KswHmYx3c4tWxmKjSPNu6yi9q9VDaceFNsWCxHT4NTiCaQATMhT8BjzSbB8C9Jgjl",        // duplicate of 8
+//        "105161449087504_pfbid02PjNzxDssTZMT97qidc73xFeF2R5zTPaRFSbwnLg87q6LWHTrSZWYKJkoBMQckREil",       // duplicate of 8
+//        "105161449087504_pfbid02PZDzf5c8e3hSt4PvDgPxRatxukGQyCu5ZzHCqz8Gyz6FFfwkeeqwFsuTJYLnUeyBl",       // duplicate of 8
+        "105161449087504_pfbid0jDpKaCbboTVsmT7yKWDMsPcsGbrEkMHJGUD2CyUVv31QcbdhZv9HiZsoBJJGJAVtl",          // 9
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")
 
-    postNumber = 1
     for (adPostId in adPostIds) {
         val post = facebook.getPost(adPostId)
         logger.info("in ${postNumber}/${adPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
@@ -101,6 +78,44 @@ fun main() {
 //            facebookSharedPosts !== null) {
 //            facebookSharedPosts.openSharedPosts(adPost)
 //        }
+        postNumber++
+    }
+
+    /************************
+     * Fanpage Posts
+     ***********************/
+
+    val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
+    logger.info("will be processing ${posts.size} fan page posts:")
+
+    var facebookSharedPosts: FacebookSharedPosts? = null
+    if (facebookProperties.getProperty("workaround-enabled") == "true") {
+        facebookSharedPosts = FacebookSharedPosts()
+        facebookSharedPosts.loginToFacebook()
+        facebookSharedPosts.switchProfileToFanPage()
+    }
+
+    postNumber = 1
+    for (post in posts) {
+        logger.info("in ${postNumber}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+
+        // comments under posts via API
+        // TODO this will fail with property absent in file
+        if (facebook4jProperties.getProperty("enabled") == "true") {
+            logger.info("\tlooking into comments under post")
+            facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
+        }
+
+        // shared posts via API
+        //  val sharedPosts = facebook.getSharedPosts(post.id) // API
+
+        // shared posts using workaround
+        // TODO checking if value is not null is not elegant (it's done because when object is created browser window is spawned which is not necessary when only API is used)
+        if (facebookProperties.getProperty("workaround-enabled") == "true" &&
+            facebookSharedPosts !== null) {
+            logger.info("\tlooking into shared posts using workaround")
+            facebookSharedPosts.openSharedPosts(post.id)
+        }
         postNumber++
     }
 
