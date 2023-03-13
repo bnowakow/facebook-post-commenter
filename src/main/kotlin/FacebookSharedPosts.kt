@@ -109,7 +109,7 @@ class FacebookSharedPosts {
         js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 350
+        val scrollTimeout = 500
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
