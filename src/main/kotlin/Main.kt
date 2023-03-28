@@ -76,6 +76,8 @@ fun main() {
 //        "105161449087504_pfbid0FSegwSqokpeCPQ4z9k3Mgt6TiiCihgcMzUqQBoFMz8BT19ms4XMGJVAh6VbNhK5ml",        // duplicate of 11
 //        "105161449087504_pfbid02Jp8sZUCRneCf7ACPqSkgGpMC7yiq1XowhQrVR2szNE3qncfcWPMYxsCzPDtAr9QLl",       // duplicate of 11
 //        "105161449087504_pfbid02K7wPpyVtnkPQYYnBdBx9NceZK48C6ZdCezC5BF7uv8LHdP1oyaH4Z9DwqXCVXPdSl",       // duplicate of 11
+//        "105161449087504_pfbid0FQ9Ccfbo83xQSnAJR4brUsFqPacZ9tTot92fShrf8MMkyKteb61pzMQk3mDrjvEhl",        // duplicate of 11
+//        "105161449087504_pfbid02JmdPEgxR9dD2V4HK5hLQkWRBC4PN8tmFc8ieaSkuBdECF3qnWNcoFGUpzzL4vjbvl",       // duplicate of 11
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")
@@ -112,6 +114,7 @@ fun main() {
     if (facebookProperties.getProperty("workaround-enabled") == "true") {
         facebookSharedPosts = FacebookSharedPosts()
         facebookSharedPosts.loginToFacebook()
+        facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
         facebookSharedPosts.switchProfileToFanPage()
     }
 

@@ -9,6 +9,7 @@ import kotlin.NoSuchElementException
 class FacebookSharedPosts {
 
     private var driver: WebDriver
+    private val js: JavascriptExecutor
     private val facebookProperties: FacebookProperties = FacebookProperties()
     var commentedPosts = 0
 
@@ -30,6 +31,7 @@ class FacebookSharedPosts {
         driver.manage().window().position = Point(800, 0)
 
         driver["https://www.facebook.com"]
+        js = driver as JavascriptExecutor
 //        driver.findElement(By.cssSelector("body")).sendKeys(Keys.chord(Keys.COMMAND, "-"))
 
         // Chrome
@@ -54,7 +56,32 @@ class FacebookSharedPosts {
         Thread.sleep(6000)
     }
 
+    fun inviteToLikeFanpagePeopleWhoInteractedWithPosts() {
+        driver["https://business.facebook.com/latest/home?asset_id=105161449087504&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
+        Thread.sleep(6000)
+        if (driver.pageSource.split("You've reached your limit").size > 1) {
+            logger.info("Can't invite people who interacted with page because daily limit of invites was reached");
+            return
+        }
+        scalePage(50)
+        // TODO check if there is 100 of items on list or less
+        try {
+            for (i in 1..100) {
+                driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input"))
+                    .click()
+                Thread.sleep(100)
+            }
+            driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div/span/div/div/div"))
+                .click()
+        } catch (e: NoSuchElementException) {
+            logger.error(e.message)
+            logger.error("NoSuchElementException in inviteToLikeFanpagePeopleWhoInteractedWithPosts")
+        }
+        Thread.sleep(6000)
+    }
+
     fun switchProfileToFanPage() {
+        driver["https://www.facebook.com"]
         // TODO fix notification popup from chrome
         if (facebookProperties.getProperty("username").contains("kuba")) {
             // account icon
@@ -103,10 +130,7 @@ class FacebookSharedPosts {
         driver["https://www.facebook.com/shares/view?id=$id"]
         Thread.sleep(5000)
 
-        val js = driver as JavascriptExecutor
-        // https://github.com/SeleniumHQ/selenium/issues/4244#issuecomment-371533758
-        js.executeScript("document.body.style.MozTransform = \"scale(0.55)\";")
-        js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
+        scalePage(55)
 
         // scroll down to bottom of page to load all posts (lazy loading)
         val scrollTimeout = 500
@@ -204,9 +228,10 @@ class FacebookSharedPosts {
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         val commentTextFieldPossibleXpaths : List<String> = listOf(
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[2]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[2]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
@@ -286,5 +311,11 @@ class FacebookSharedPosts {
         } else {
             logger.info("\t\tpost doesn't have any shared posts")
         }
+    }
+
+    private fun scalePage(scale: Int) {
+        // https://github.com/SeleniumHQ/selenium/issues/4244#issuecomment-371533758
+        js.executeScript("document.body.style.MozTransform = \"scale(0.$scale)\";")
+        js.executeScript("document.body.style.MozTransformOrigin = \"0 0\";")
     }
 }
