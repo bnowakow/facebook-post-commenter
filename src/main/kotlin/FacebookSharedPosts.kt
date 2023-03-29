@@ -63,21 +63,29 @@ class FacebookSharedPosts {
             logger.info("Can't invite people who interacted with page because daily limit of invites was reached");
             return
         }
+
+        // TODO check if modal has been shown, sometimes page doesn't show modal with user list
         scalePage(50)
-        // TODO check if there is 100 of items on list or less
+        val numberOfUsers = driver.pageSource.split("name=\"select user\"").size - 1
         try {
-            for (i in 1..100) {
+            for (i in 1..numberOfUsers) {
                 driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input"))
                     .click()
                 Thread.sleep(100)
             }
-            driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div/span/div/div/div"))
-                .click()
+            if (numberOfUsers > 0) {
+                driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div/span/div/div/div"))
+                    .click()
+            }
         } catch (e: NoSuchElementException) {
             logger.error(e.message)
             logger.error("NoSuchElementException in inviteToLikeFanpagePeopleWhoInteractedWithPosts")
+        } catch (e: Exception) {
+            logger.error(e.message)
+            logger.error("Exception in inviteToLikeFanpagePeopleWhoInteractedWithPosts")
         }
         Thread.sleep(6000)
+        logger.info("invited $numberOfUsers users who interacted with our posts to like our fanpage")
     }
 
     fun switchProfileToFanPage() {
