@@ -78,6 +78,7 @@ fun main() {
 //        "105161449087504_pfbid02K7wPpyVtnkPQYYnBdBx9NceZK48C6ZdCezC5BF7uv8LHdP1oyaH4Z9DwqXCVXPdSl",       // duplicate of 11
 //        "105161449087504_pfbid0FQ9Ccfbo83xQSnAJR4brUsFqPacZ9tTot92fShrf8MMkyKteb61pzMQk3mDrjvEhl",        // duplicate of 11
 //        "105161449087504_pfbid02JmdPEgxR9dD2V4HK5hLQkWRBC4PN8tmFc8ieaSkuBdECF3qnWNcoFGUpzzL4vjbvl",       // duplicate of 11
+        "105161449087504_pfbid02i3af3dUCAKpyNX8WVYW9HSyme3QfsQ4gFvfBK7apFPW2bZUdNPBjwcSb4tLEKhZTl",         // 12
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")
