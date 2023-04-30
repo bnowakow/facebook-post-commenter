@@ -49,8 +49,13 @@ class FacebookReplies(private val facebook: Facebook) {
             reply.append(listOf("<3", "(:", ":)", "").random())
             reply.append(listOf("\n", "\n\n", " ").random())
             reply.append("Link do mojej zbiórki: http://siepomaga.pl/raczka-kuby ")
-            reply.append(listOf("\n", "\n\n", " ").random())
-            reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: https://www.siepomaga.pl/raczka-kuby/procent-podatku")
+
+            if (java.time.LocalDate.now().month.value <= 4) {
+                // tax deduction usually can be done until end of April
+                reply.append(listOf("\n", "\n\n", " ").random())
+                reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: https://www.siepomaga.pl/raczka-kuby/procent-podatku")
+            }
+
             return reply.toString()
         }
     }
