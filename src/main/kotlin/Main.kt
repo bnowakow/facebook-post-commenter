@@ -81,6 +81,13 @@ fun main() {
         "105161449087504_pfbid02i3af3dUCAKpyNX8WVYW9HSyme3QfsQ4gFvfBK7apFPW2bZUdNPBjwcSb4tLEKhZTl",         // 12
         "105161449087504_pfbid02hyeu3vLQyL5uPy7YDF8HWpAsJggibkQ1BhZUHDJEABANTdypHSskUq25mrNSpCiFl",         // 13
         "105161449087504_pfbid01TEkQjff5D7Wg7BgaPPQcFVoonErBHVAPC4HYAfYTmboxd3zid5x9nKCwxZ5cJtBl",          // 14
+        "105161449087504_pfbid028TLQmc2eTrxkbrWbNvHcSXRiCzidtk1AbW6zESN8KTwwrheDv5XRuWgQpFyudj7Ql",         // 15
+        "105161449087504_pfbid02T7cDoH6JSo1nsNhAN5DxBkrt1zWWCXGYbhrFTiJAiZskW9PWMjA97vptFNjMSN3nl",         // 16
+        "105161449087504_pfbid0zmkxMxMGZ6LD89PJfAzWHPaYBfgW9wzsV4txipv4a1f4FFHcJBupbS3eNUTfHmbil",          // 17
+
+        // todo: 781862799854716 https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/781862799854716
+        // todo: https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/pfbid0qTTvsByqd1tfpFrqR8iYN8XX1ufVpAStAyPnsCVhgXKxsRuQDXGfy8RDkHjYYexnl?notif_id=1685549767027847&notif_t=feedback_reaction_generic&ref=notif
+
     )
 
     logger.info("will be processing ${adPostIds.size} ad posts:")
