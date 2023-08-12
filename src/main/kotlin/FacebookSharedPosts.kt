@@ -49,7 +49,8 @@ class FacebookSharedPosts {
         driver.findElement(By.id("email")).sendKeys(facebookProperties.getProperty("username"))
         driver.findElement(By.id("pass")).sendKeys(facebookProperties.getProperty("password"))
         // cookie form
-        driver.findElement(By.className("_9xo6")).click()
+        // for some reason can't find alternative after they change code, as a workaround I put beakpoint here and dismiss cookie modal manualy
+//        driver.findElement(By.className("_42ft")).click()
         Thread.sleep(500)
         // login button
         driver.findElement(By.name("login")).click()
@@ -60,7 +61,7 @@ class FacebookSharedPosts {
         driver["https://business.facebook.com/latest/home?asset_id=105161449087504&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
         Thread.sleep(6000)
         if (driver.pageSource.split("You've reached your limit").size > 1) {
-            logger.info("Can't invite people who interacted with page because daily limit of invites was reached");
+            logger.info("Can't invite people who interacted with page because daily limit of invites was reached")
             return
         }
 
@@ -93,12 +94,31 @@ class FacebookSharedPosts {
         // TODO fix notification popup from chrome
         if (facebookProperties.getProperty("username").contains("kuba")) {
             // account icon
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]"))
-                .click()
+            if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]")) {
+                if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]")) {
+                    throw Exception("couldn't press Tab on profile button")
+                } else {
+                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"))
+                        .click()
+                }
+            } else {
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]"))
+                    .click()
+            }
+
             Thread.sleep(500)
             // switch profile to fan page
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
-                .click()
+            if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
+                if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
+                    throw Exception("couldn't press Tab on switch profile button")
+                } else {
+                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
+                        .click()
+                }
+            } else {
+                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
+                    .click()
+            }
         } else {
             // account icon
             driver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]"))
@@ -141,7 +161,7 @@ class FacebookSharedPosts {
         scalePage(55)
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 500
+        val scrollTimeout = 150
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
@@ -180,7 +200,11 @@ class FacebookSharedPosts {
                 // send tab from like of first post should bring back focus to the top
                 if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
                     if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
-                        throw Exception("couldn't press Tab on like in first post")
+                        if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
+                            if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
+                                throw Exception("couldn't press Tab on like in first post")
+                            }
+                        }
                     }
                 }
 
