@@ -51,6 +51,12 @@ class FacebookSharedPosts {
         // cookie form
         // for some reason can't find alternative after they change code, as a workaround I put breakpoint on login button below and dismiss cookie modal manually
 //        driver.findElement(By.className("_42ft")).click()
+        // workaround for above
+        for (i in 1..13) {
+            driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
+            Thread.sleep(100)
+        }
+        driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
         Thread.sleep(500)
         // login button
         driver.findElement(By.name("login")).click()
