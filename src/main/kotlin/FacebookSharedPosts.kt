@@ -49,7 +49,7 @@ class FacebookSharedPosts {
         driver.findElement(By.id("email")).sendKeys(facebookProperties.getProperty("username"))
         driver.findElement(By.id("pass")).sendKeys(facebookProperties.getProperty("password"))
         // cookie form
-        // for some reason can't find alternative after they change code, as a workaround I put beakpoint on login button below and dismiss cookie modal manualy
+        // for some reason can't find alternative after they change code, as a workaround I put breakpoint on login button below and dismiss cookie modal manually
 //        driver.findElement(By.className("_42ft")).click()
         Thread.sleep(500)
         // login button
@@ -75,12 +75,12 @@ class FacebookSharedPosts {
                     if (clickElementIfOneInListExists(listOf(
                         "/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
                         "/html/body/div[2]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input"
-                    ))) {
+                    )).found) {
                         numberOfInvitedUsers++
                     }
                 } catch (e: Exception) {
                     // ignoring since rest of program can run
-                    logger.error("couldn't select $i'th user on invite to fanpage screen")
+                    logger.error("couldn't select $i'th user on invite to fan page screen")
                 }
                 Thread.sleep(100)
             }
@@ -96,7 +96,7 @@ class FacebookSharedPosts {
             logger.error("Exception in inviteToLikeFanpagePeopleWhoInteractedWithPosts")
         }
         Thread.sleep(6000)
-        logger.info("invited $numberOfInvitedUsers users who interacted with our posts to like our fanpage")
+        logger.info("invited $numberOfInvitedUsers users who interacted with our posts to like our fan page")
     }
 
     fun switchProfileToFanPage() {
@@ -107,7 +107,7 @@ class FacebookSharedPosts {
             logger.info("trying to click on account icon")
             clickElementIfOneInListExists(listOf(
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]",
-                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
             ))
 
             Thread.sleep(500)
@@ -124,18 +124,11 @@ class FacebookSharedPosts {
                 .click()
             Thread.sleep(500)
             // switch profile to fan page
-            if (canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
-                driver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
-                    .click()
-            } else {
-                if (canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
-                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
-                        .click()
-                } else {
-                    throw Exception("couldn't press Tab on switch profile button")
-                }
-            }
-
+            logger.info("trying to click on switch profile to fan page")
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
+            ))
         }
         Thread.sleep(2000)
     }
@@ -151,16 +144,19 @@ class FacebookSharedPosts {
         }
     }
 
-    private fun clickElementIfOneInListExists(possibleXpaths : List<String>): Boolean {
+    data class XpathElementFound(val found: Boolean, val xpath: String? = null)
+    private fun clickElementIfOneInListExists(possibleXpaths : List<String>, clickOnElement: Boolean = true): XpathElementFound {
 
-        var xpath = ""
+        var xpath: String
         val iter: Iterator<String> = possibleXpaths.iterator()
         while (iter.hasNext()) {
             xpath = iter.next()
             if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
-                driver.findElement(By.xpath(xpath))
-                    .click()
-                return true
+                if (clickOnElement) {
+                    driver.findElement(By.xpath(xpath))
+                        .click()
+                }
+                return XpathElementFound(true, xpath)
             } else {
                 if (!iter.hasNext()) {
                     // last item
@@ -168,7 +164,7 @@ class FacebookSharedPosts {
                 }
             }
         }
-        return false
+        return XpathElementFound(false)
     }
 
     fun openSharedPosts(postId: String) {
@@ -184,7 +180,7 @@ class FacebookSharedPosts {
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
-        var numberOfConfirmatinos: Long = 0
+        var numberOfConfirmations: Long = 0
         for (scrollNumber in 1..scrollTimeout) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
             Thread.sleep(500)
@@ -192,13 +188,13 @@ class FacebookSharedPosts {
             if (currentScrollHeight <= previousScrollHeight) {
                 currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
                 if (currentNumberOfSegments <= previousNumberOfSegments) {
-                    numberOfConfirmatinos++
-                    if (numberOfConfirmatinos > 2) {
+                    numberOfConfirmations++
+                    if (numberOfConfirmations > 2) {
                         logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
                         break
                     }
                 } else {
-                    numberOfConfirmatinos = 0
+                    numberOfConfirmations = 0
                 }
                 previousNumberOfSegments = currentNumberOfSegments
             }
@@ -217,25 +213,23 @@ class FacebookSharedPosts {
         if (driver.pageSource.indexOf("Shared with Public</title>") > -1) {
             if (facebookProperties.getProperty("username").contains("kuba")) {
                 // send tab from like of first post should bring back focus to the top
-                if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
-                    if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
-                        if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
-                            if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
-                                throw Exception("couldn't press Tab on like in first post")
-                            }
-                        }
-                    }
-                }
+                logger.info("\t\ttrying to press Tab on like in first post")
+                clickElementIfOneInListExists(listOf(
+                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                ), false)
 
                 // TODO check if locale of accounts are different and this causes below
                 pageSource = driver.pageSource.substringAfter("People who shared this")
             } else {
                 // send tab from like of first post should bring back focus to the top
-                if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]")) {
-                    if (!this.canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]")) {
-                        throw Exception("couldn't press Tab on like in first post")
-                    }
-                }
+                logger.info("\t\ttrying to press Tab on like in first post")
+                clickElementIfOneInListExists(listOf(
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                ))
 
                 // TODO check if locale of accounts are different and this causes below - UK?
                 pageSource = driver.pageSource.substringAfter("People Who Shared This")
@@ -278,7 +272,8 @@ class FacebookSharedPosts {
                         val replyMessage: String = FacebookReplies.randomizeThankYouReply()
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
-                        val commentTextFieldPossibleXpaths : List<String> = listOf(
+                        logger.info("\t\t\ttrying to press Tab comment text box")
+                        val commentTextFieldPossibleXpaths = clickElementIfOneInListExists(listOf(
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[2]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
@@ -288,20 +283,7 @@ class FacebookSharedPosts {
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/form/div/div[1]/div[1]/div/div[1]"
-                        )
-                        var xpath = ""
-                        val iter: Iterator<String> = commentTextFieldPossibleXpaths.iterator()
-                        while (iter.hasNext()) {
-                            xpath = iter.next()
-                            if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
-                                break
-                            } else {
-                                if (!iter.hasNext()) {
-                                    // last item
-                                    throw Exception("couldn't press Tab comment text box")
-                                }
-                            }
-                        }
+                        ), false)
 
                         try {
                             if (facebookProperties.getProperty("username").contains("kuba")) {
@@ -310,24 +292,24 @@ class FacebookSharedPosts {
 //                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
-                                    driver.findElement(By.xpath(xpath))
+                                    driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath(xpath))
+                                driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                     .sendKeys(Keys.RETURN)
 
                                 commentedPosts++
                             } else {
                                 // firefox
                                 for (letter in replyMessage.replace("\n", " ")) {
-                                    driver.findElement(By.xpath(xpath))
+                                    driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                         .sendKeys(letter.toString())
                                     Thread.sleep(50)
                                 }
                                 Thread.sleep(500)
-                                driver.findElement(By.xpath(xpath))
+                                driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                     .sendKeys(Keys.RETURN)
 
                                 commentedPosts++
