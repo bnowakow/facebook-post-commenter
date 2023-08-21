@@ -68,13 +68,23 @@ class FacebookSharedPosts {
         // TODO check if modal has been shown, sometimes page doesn't show modal with user list
         scalePage(50)
         val numberOfUsers = driver.pageSource.split("name=\"select user\"").size - 1
+        var numberOfInvitedUsers = 0
         try {
             for (i in 1..numberOfUsers) {
-                driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input"))
-                    .click()
+                try {
+                    if (clickElementIfOneInListExists(listOf(
+                        "/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
+                        "/html/body/div[2]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input"
+                    ))) {
+                        numberOfInvitedUsers++
+                    }
+                } catch (e: Exception) {
+                    // ignoring since rest of program can run
+                    logger.error("couldn't select $i'th user on invite to fanpage screen")
+                }
                 Thread.sleep(100)
             }
-            if (numberOfUsers > 0) {
+            if (numberOfInvitedUsers > 0) {
                 driver.findElement(By.xpath("/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div/span/div/div/div"))
                     .click()
             }
@@ -86,7 +96,7 @@ class FacebookSharedPosts {
             logger.error("Exception in inviteToLikeFanpagePeopleWhoInteractedWithPosts")
         }
         Thread.sleep(6000)
-        logger.info("invited $numberOfUsers users who interacted with our posts to like our fanpage")
+        logger.info("invited $numberOfInvitedUsers users who interacted with our posts to like our fanpage")
     }
 
     fun switchProfileToFanPage() {
@@ -94,31 +104,20 @@ class FacebookSharedPosts {
         // TODO fix notification popup from chrome
         if (facebookProperties.getProperty("username").contains("kuba")) {
             // account icon
-            if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]")) {
-                if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]")) {
-                    throw Exception("couldn't press Tab on profile button")
-                } else {
-                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"))
-                        .click()
-                }
-            } else {
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]"))
-                    .click()
-            }
+            logger.info("trying to click on account icon")
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"
+            ))
 
             Thread.sleep(500)
             // switch profile to fan page
-            if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
-                if (!canElementBeReachedAndPressTabOnIt("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div")) {
-                    throw Exception("couldn't press Tab on switch profile button")
-                } else {
-                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
-                        .click()
-                }
-            } else {
-                driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div"))
-                    .click()
-            }
+            logger.info("trying to click on switch profile to fan page")
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/a/div[1]/div[3]/span/div"
+            ))
         } else {
             // account icon
             driver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]"))
@@ -150,6 +149,26 @@ class FacebookSharedPosts {
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun clickElementIfOneInListExists(possibleXpaths : List<String>): Boolean {
+
+        var xpath = ""
+        val iter: Iterator<String> = possibleXpaths.iterator()
+        while (iter.hasNext()) {
+            xpath = iter.next()
+            if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
+                driver.findElement(By.xpath(xpath))
+                    .click()
+                return true
+            } else {
+                if (!iter.hasNext()) {
+                    // last item
+                    throw Exception("couldn't find any element in list of possible xpaths")
+                }
+            }
+        }
+        return false
     }
 
     fun openSharedPosts(postId: String) {
@@ -267,7 +286,8 @@ class FacebookSharedPosts {
                             "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/form/div/div[1]/div[1]/div/div[1]"
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/form/div/div[1]/div[1]/div/div[1]"
                         )
                         var xpath = ""
                         val iter: Iterator<String> = commentTextFieldPossibleXpaths.iterator()
