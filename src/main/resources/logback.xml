@@ -7,7 +7,7 @@
 
     <!-- TODO netty logging set to info -->
     <logger name="FacebookSharedPosts" level="debug" />
-    <logger name="FacebookReplies" level="info" />
+    <logger name="FacebookReplies" level="debug" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
