@@ -58,7 +58,7 @@ class FacebookSharedPosts {
 
     fun takeScreenshot(comment: String = "") {
         val scrFile: File= (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
-        val fileName = "screenshot" + java.time.LocalDateTime.now() + " " + comment + ".png"
+        val fileName = "screenshot" + "-" + java.time.LocalDateTime.now() + "-" + comment + ".png"
         logger.debug("trying to take screenshot of name=$fileName")
         // Now you can do whatever you need to do with it, for example copy somewhere
         FileUtils.copyFile(scrFile, File(fileName))
@@ -80,7 +80,7 @@ class FacebookSharedPosts {
         for (i in 1..13) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
             Thread.sleep(100)
-            takeScreenshot("scroll cookie consent i=$i")
+            takeScreenshot("scroll_cookie_consent_i=$i")
         }
         logger.debug("trying to click on cookie consent form")
         driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
@@ -88,7 +88,7 @@ class FacebookSharedPosts {
         Thread.sleep(500)
         // login button
         logger.debug("trying to click on login button")
-        takeScreenshot("trying to click on login button")
+        takeScreenshot("trying_to_click_on_login_button")
         driver.findElement(By.name("login")).click()
         Thread.sleep(6000)
     }
