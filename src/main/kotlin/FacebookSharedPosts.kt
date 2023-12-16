@@ -78,9 +78,9 @@ class FacebookSharedPosts {
 //        driver.findElement(By.className("_42ft")).click()
 //        // workaround for above
         for (i in 1..13) {
+            logger.debug("tab i=$i element_txt=" + driver.switchTo().activeElement().text)
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
             Thread.sleep(100)
-            takeScreenshot("scroll_cookie_consent_i=$i")
         }
         logger.debug("trying to click on cookie consent form")
         try {
