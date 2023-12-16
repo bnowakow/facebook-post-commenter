@@ -83,7 +83,12 @@ class FacebookSharedPosts {
             takeScreenshot("scroll_cookie_consent_i=$i")
         }
         logger.debug("trying to click on cookie consent form")
-        driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+        try {
+            driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+        } catch (e: Exception) {
+            logger.info("exception while pressing RETURN on Tabbed button. Trying to click button By.className")
+            driver.findElement(By.className("_42ft")).click()
+        }
 //        // \workaround
         Thread.sleep(500)
         // login button
