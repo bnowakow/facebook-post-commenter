@@ -28,7 +28,10 @@ class FacebookSharedPosts {
         firefoxOptions.profile = firefoxProfile
 
         driver = FirefoxDriver(firefoxOptions)
-        driver.manage().window().position = Point(800, 0)
+        // laptop screen
+//        driver.manage().window().position = Point(800, 0)
+        // desktop screen
+        driver.manage().window().position = Point(1490, 0)
 
         driver["https://www.facebook.com"]
         js = driver as JavascriptExecutor
@@ -111,6 +114,7 @@ class FacebookSharedPosts {
     fun switchProfileToFanPage() {
         driver["https://www.facebook.com"]
         // TODO fix notification popup from chrome
+        Thread.sleep(1500)
         if (facebookProperties.getProperty("username").contains("kuba")) {
             // account icon
             logger.info("trying to click on account icon")
@@ -119,7 +123,7 @@ class FacebookSharedPosts {
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
             ))
 
-            Thread.sleep(500)
+            Thread.sleep(1000)
             // switch profile to fan page
             logger.info("trying to click on switch profile to fan page")
             clickElementIfOneInListExists(listOf(
@@ -301,6 +305,7 @@ class FacebookSharedPosts {
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div[2]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                         ), false)
 
