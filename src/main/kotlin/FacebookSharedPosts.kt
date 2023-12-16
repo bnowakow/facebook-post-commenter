@@ -77,19 +77,23 @@ class FacebookSharedPosts {
         // for some reason can't find alternative after they change code, as a workaround I put breakpoint on login button below and dismiss cookie modal manually
 //        driver.findElement(By.className("_42ft")).click()
 //        // workaround for above
-        for (i in 1..13) {
+        var i = 0
+        while (true) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
             Thread.sleep(100)
-            logger.debug("tab i=$i element_txt=" + driver.switchTo().activeElement().text)
+            val elementText = driver.switchTo().activeElement().text
+            logger.debug("tab i=$i element_txt=$elementText")
+            if (elementText.equals("Decline optional cookies")) {
+                break
+            }
+            i++;
         }
         logger.debug("trying to click on cookie consent form")
         try {
-            driver.findElement(By.className("_42ft")).click()
-//            driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+            driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
         } catch (e: Exception) {
             logger.info("exception while pressing RETURN on Tabbed button. Trying to click button By.className")
-//            driver.findElement(By.className("_42ft")).click()
-            driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+            driver.findElement(By.className("_42ft")).click()
         }
 //        // \workaround
         Thread.sleep(500)
