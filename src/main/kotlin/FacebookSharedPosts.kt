@@ -3,6 +3,8 @@ import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
+import java.io.File
+import org.apache.commons.io.FileUtils
 import kotlin.NoSuchElementException
 
 
@@ -29,10 +31,10 @@ class FacebookSharedPosts {
             firefoxOptions.addArguments("--headless")
         } else {
             logger.debug("running browser in non-headless mode")
-            // https://stackoverflow.com/questions/15397483/how-do-i-set-browser-width-and-height-in-selenium-webdriver
-            firefoxOptions.addArguments("--width=1000")
-            firefoxOptions.addArguments("--height=3440")
         }
+        // https://stackoverflow.com/questions/15397483/how-do-i-set-browser-width-and-height-in-selenium-webdriver
+        firefoxOptions.addArguments("--width=1000")
+        firefoxOptions.addArguments("--height=3440")
         firefoxOptions.profile = firefoxProfile
 
         driver = FirefoxDriver(firefoxOptions)
@@ -54,24 +56,39 @@ class FacebookSharedPosts {
         //driver = SafariDriver()
     }
 
+    fun takeScreenshot(comment: String = "") {
+        val scrFile: File= (driver as TakesScreenshot).getScreenshotAs(OutputType.FILE)
+        val fileName = "screenshot" + java.time.LocalDateTime.now() + " " + comment + ".png"
+        logger.debug("trying to take screenshot of name=$fileName")
+        // Now you can do whatever you need to do with it, for example copy somewhere
+        FileUtils.copyFile(scrFile, File(fileName))
+    }
+
     fun loginToFacebook() {
 
         val facebookProperties = FacebookProperties()
 
+        logger.debug("trying to open facebook page")
         driver["https://www.facebook.com"]
+        logger.debug("trying to fill user and password")
         driver.findElement(By.id("email")).sendKeys(facebookProperties.getProperty("username"))
         driver.findElement(By.id("pass")).sendKeys(facebookProperties.getProperty("password"))
         // cookie form
         // for some reason can't find alternative after they change code, as a workaround I put breakpoint on login button below and dismiss cookie modal manually
 //        driver.findElement(By.className("_42ft")).click()
-        // workaround for above
+//        // workaround for above
         for (i in 1..13) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
             Thread.sleep(100)
+            takeScreenshot("scroll cookie consent i=$i")
         }
+        logger.debug("trying to click on cookie consent form")
         driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+//        // \workaround
         Thread.sleep(500)
         // login button
+        logger.debug("trying to click on login button")
+        takeScreenshot("trying to click on login button")
         driver.findElement(By.name("login")).click()
         Thread.sleep(6000)
     }
