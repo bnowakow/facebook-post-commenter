@@ -86,7 +86,7 @@ class FacebookSharedPosts {
             if (elementText.equals("Decline optional cookies")) {
                 break
             }
-            i++;
+            i++
         }
         logger.debug("trying to click on cookie consent form")
         try {
@@ -99,7 +99,7 @@ class FacebookSharedPosts {
         Thread.sleep(500)
         // login button
         logger.debug("trying to click on login button")
-        takeScreenshot("trying_to_click_on_login_button")
+//        takeScreenshot("trying_to_click_on_login_button")
         driver.findElement(By.name("login")).click()
         Thread.sleep(6000)
     }
