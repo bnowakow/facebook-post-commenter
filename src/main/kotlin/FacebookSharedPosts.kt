@@ -23,15 +23,25 @@ class FacebookSharedPosts {
 
         // https://stackoverflow.com/questions/15397483/how-do-i-set-browser-width-and-height-in-selenium-webdriver
         val firefoxOptions = FirefoxOptions()
-        firefoxOptions.addArguments("--width=1000")
-        firefoxOptions.addArguments("--height=3440")
+        // https://github.com/mdn/headless-examples/blob/master/headlessfirefox-gradle/src/main/java/com/mozilla/example/HeadlessFirefoxSeleniumExample.java
+        if (facebookProperties.getProperty("browser.headless").toBoolean()) {
+            logger.debug("running browser in headless mode")
+            firefoxOptions.addArguments("--headless")
+        } else {
+            logger.debug("running browser in non-headless mode")
+            // https://stackoverflow.com/questions/15397483/how-do-i-set-browser-width-and-height-in-selenium-webdriver
+            firefoxOptions.addArguments("--width=1000")
+            firefoxOptions.addArguments("--height=3440")
+        }
         firefoxOptions.profile = firefoxProfile
 
         driver = FirefoxDriver(firefoxOptions)
-        // laptop screen
+        if (!facebookProperties.getProperty("browser.headless").toBoolean()) {
+            // laptop screen
 //        driver.manage().window().position = Point(800, 0)
-        // desktop screen
-        driver.manage().window().position = Point(1490, 0)
+            // desktop screen
+            driver.manage().window().position = Point(1490, 0)
+        }
 
         driver["https://www.facebook.com"]
         js = driver as JavascriptExecutor

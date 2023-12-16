@@ -1,10 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+// https://kotlinlang.org/docs/get-started-with-jvm-gradle-project.html#explore-the-build-script
+
 plugins {
-    kotlin("jvm") version "1.7.21"
+    kotlin("jvm") version "1.9.21"
     application
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "pl.bnowakowski"
@@ -17,8 +19,8 @@ repositories {
 
 dependencies {
     implementation("org.facebook4j:facebook4j-core:2.4.13")
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
-    implementation("ch.qos.logback:logback-classic:1.4.5")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("ch.qos.logback:logback-classic:1.4.7")
     implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.16.1")
     implementation("org.seleniumhq.selenium:selenium-firefox-driver:4.16.1")
     implementation("org.seleniumhq.selenium:selenium-safari-driver:4.16.1")
@@ -31,8 +33,12 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+//tasks.withType<KotlinCompile> {
+//    kotlinOptions.jvmTarget = "1.8"
+//}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 application {
