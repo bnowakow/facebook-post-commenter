@@ -1,6 +1,7 @@
 import facebook4j.*
 import mu.KotlinLogging
 import pl.bnowakowski.facebook_commenter.FacebookPost
+import kotlin.system.exitProcess
 
 
 fun main() {
@@ -159,5 +160,7 @@ fun main() {
         facebookSharedPosts !== null) {
         logger.info("added comment to ${facebookSharedPosts.commentedPosts} comments via shared posts workaround")
     }
+
+    exitProcess(0)
 
 }
