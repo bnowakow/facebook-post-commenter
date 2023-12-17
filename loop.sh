@@ -5,7 +5,7 @@
 docker compose build
 
 while true; do
-    docker compose up
+    timeout 1800 docker compose up
     docker compose down
     date
     sleep 3600
