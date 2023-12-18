@@ -86,6 +86,16 @@ fun main() {
         "105161449087504_pfbid02T7cDoH6JSo1nsNhAN5DxBkrt1zWWCXGYbhrFTiJAiZskW9PWMjA97vptFNjMSN3nl",         // 16
         "105161449087504_pfbid0zmkxMxMGZ6LD89PJfAzWHPaYBfgW9wzsV4txipv4a1f4FFHcJBupbS3eNUTfHmbil",          // 17
 
+        "105161449087504_pfbid0zhMxLeoQD6EYGJ1o8mEn7ZyBYrA9pU22Ddx9rfck5FbLUyKZnmKM4sHzEvuVhKzRl",          // TODO check duplicates
+        "105161449087504_pfbid02WgCsMXh1iHpcXZV4hRRze4VbH9o6m1WF3GhALdwV3xGLGoPMVzQesbcq4GZ4dnEKl",         // TODO check duplicates
+        "105161449087504_pfbid02ZEWhCkcxSDjtyhmYUm5kWMU8tJYVEWSGpAkCJPX4ywBq2dRzgsK96XnDvGNzMD2ul",         // TODO check duplicates
+        "105161449087504_pfbid0324KVCiwC9m9CTfwEWRZ5gA8fVTsCNPzLNSkKc78PCy8wgNHKvtTSMVy3o6u7S7cFl",         // TODO check duplicates
+        "105161449087504_pfbid0uL1Bxr3wRuc8Z1TBRWzbXuHYuBAeK9bUDf5rEAqQoDsz8nZr8SuKFPNveqNuCV63l",          // TODO check duplicates
+        "105161449087504_pfbid02MmXqJi3FbVzH6fwsN38QYd4yC9onmHbLtHeXt6bE3q1NmvR3sEBhDho9D6A1gmPXl",         // TODO check duplicates
+        "105161449087504_pfbid02iz7SkNPkTsTRKbMWywENF7bHpjv6GXr8hjYVaLuyY1Up99YHXnvr6Zd5xYobNo4Cl",         // TODO check duplicates
+        "105161449087504_pfbid02b2v9jGWQ7uNJ8LNgXDNXBhTXY2gw5N1C6NuHm7seHdNitNTAPKTcmRpG5Dexsndxl",         // TODO check duplicates
+        "105161449087504_pfbid025gDuHwiPb3J3whCpfQME5nfeHRYkTvPB4ZPk8N3M74H6CG9HYQJo2898kcJB5Wmyl",         // TODO check duplicates
+
         // todo: 781862799854716 https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/781862799854716
         // todo: https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/pfbid0qTTvsByqd1tfpFrqR8iYN8XX1ufVpAStAyPnsCVhgXKxsRuQDXGfy8RDkHjYYexnl?notif_id=1685549767027847&notif_t=feedback_reaction_generic&ref=notif
 
