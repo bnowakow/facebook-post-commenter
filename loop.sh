@@ -8,6 +8,6 @@ while true; do
     timeout 1800 docker compose up
     docker compose down
     date
-    sleep 3600
+    sleep 6h
 done
 
