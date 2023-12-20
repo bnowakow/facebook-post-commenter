@@ -173,12 +173,15 @@ class FacebookSharedPosts {
             ))
         } else {
             // account icon
-            driver.findElement(By.xpath("/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]"))
-                .click()
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"
+            ))
             Thread.sleep(500)
             // switch profile to fan page
             logger.info("trying to click on switch profile to fan page")
             clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/div[2]/span/div/div[1]/div[1]/span/div",
                 "/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
             ))

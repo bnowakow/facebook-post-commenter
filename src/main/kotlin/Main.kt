@@ -100,8 +100,16 @@ fun main() {
         "105161449087504_pfbid0uL1Bxr3wRuc8Z1TBRWzbXuHYuBAeK9bUDf5rEAqQoDsz8nZr8SuKFPNveqNuCV63l",          // 21
         "105161449087504_pfbid02MmXqJi3FbVzH6fwsN38QYd4yC9onmHbLtHeXt6bE3q1NmvR3sEBhDho9D6A1gmPXl",         // 22
         "105161449087504_pfbid02iz7SkNPkTsTRKbMWywENF7bHpjv6GXr8hjYVaLuyY1Up99YHXnvr6Zd5xYobNo4Cl",         // 23
+//        "105161449087504_pfbid02ioxSTE81eAx55Tcq2AyR55Tb8oEp4UD3QNVyed6hS1Jb43XrSEs9mEcJwwRtvv8Pl",       // duplicate of 23
         "105161449087504_pfbid02b2v9jGWQ7uNJ8LNgXDNXBhTXY2gw5N1C6NuHm7seHdNitNTAPKTcmRpG5Dexsndxl",         // 24
+//        "105161449087504_pfbid02arm9S8EfJHoUxXrwzUbWMNVeV1c1Znt5YB1yXfEvr1oo3hvzKtCe1QUFzU5V8ZK8l",       // duplicate of 24
         "105161449087504_pfbid025gDuHwiPb3J3whCpfQME5nfeHRYkTvPB4ZPk8N3M74H6CG9HYQJo2898kcJB5Wmyl",         // 25
+//        "105161449087504_pfbid028aiNn62jpho8ApwyKZcNuXN84w7NDpgaXsxRHYYikVTvz3Rojko6L7vepRWm1mil",        // duplicate of 25
+        "105161449087504_pfbid0LYSPSTtLLbmZnJx2v6iYvs7UhpBQkXwJayJdDkKtEYkSgNK6zSGuKkeiW3RU9qS9l",          // 26
+
+
+
+
 
         // todo: 781862799854716 https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/781862799854716
         // todo: https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/777488547419139/
