@@ -22,6 +22,7 @@ fun main() {
      ***********************/
 
     var postNumber = 1
+    // For now manually taken from https://business.facebook.com/latest/inbox/facebook?asset_id=105161449087504&mailbox_id=105161449087504
     // TODO figure out can we get id's of ad posts from API
     val adPostIds: List<String> = listOf(
         "105161449087504_pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l",         // 1
@@ -107,6 +108,7 @@ fun main() {
 //        "105161449087504_pfbid028aiNn62jpho8ApwyKZcNuXN84w7NDpgaXsxRHYYikVTvz3Rojko6L7vepRWm1mil",        // duplicate of 25
         "105161449087504_pfbid0LYSPSTtLLbmZnJx2v6iYvs7UhpBQkXwJayJdDkKtEYkSgNK6zSGuKkeiW3RU9qS9l",          // 26
 
+        "105161449087504_pfbid025z2RZT1rbEShjPiyAZoeYwPbAwYKGwzVXSSWWiJYAwWny6fXAZDLDePDLZjUWaeAl",
 
 
 
