@@ -18,13 +18,14 @@ class AdPostsProcessor {
         // TODO figure out can we get id's of ad posts from API
 
         val uri = Thread.currentThread().getContextClassLoader().getResource("adPosts.txt")?.toURI()
-        val adPostIds = File (uri).useLines { it.toList() }
+        val adPostIdPairs = File (uri).useLines { it.toList() }.associateBy( { facebook.getPost(it).id}, {it})
+        val uniqueAdPostIds = adPostIdPairs.keys
 
-        logger.info("will be processing ${adPostIds.size} ad posts:")
+        logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
-        for (adPostId in adPostIds) {
+        for (adPostId in uniqueAdPostIds) {
             val post = facebook.getPost(adPostId)
-            logger.info("in ${adPostsCounter}/${adPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+            logger.info("in ${adPostsCounter}/${uniqueAdPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
             // comments under ad posts via API
             if (facebook4jProperties.getProperty("enabled") == "true") {
