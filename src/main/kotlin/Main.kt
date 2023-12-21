@@ -1,4 +1,5 @@
 import facebook4j.*
+import mu.KLogger
 import mu.KotlinLogging
 import pl.bnowakowski.facebook_commenter.FacebookPost
 import kotlin.system.exitProcess
@@ -17,6 +18,17 @@ fun main() {
 
     facebook.extendTokenExpiration()
 
+    processAdPost(logger, facebook, facebook4jProperties, facebookReplies)
+    processFpPost(logger, facebook, facebookProperties, facebook4jProperties, facebookReplies)
+    exitProcess(0)
+}
+
+private fun processAdPost(
+    logger: KLogger,
+    facebook: Facebook,
+    facebook4jProperties: Facebook4jProperties,
+    facebookReplies: FacebookReplies
+) {
     /************************
      * Ad Posts
      ***********************/
@@ -108,9 +120,6 @@ fun main() {
         "105161449087504_pfbid0LYSPSTtLLbmZnJx2v6iYvs7UhpBQkXwJayJdDkKtEYkSgNK6zSGuKkeiW3RU9qS9l",          // 26
 
 
-
-
-
         // todo: 781862799854716 https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/781862799854716
         // todo: https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/videos/777488547419139/
         // todo: https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/pfbid0qTTvsByqd1tfpFrqR8iYN8XX1ufVpAStAyPnsCVhgXKxsRuQDXGfy8RDkHjYYexnl?notif_id=1685549767027847&notif_t=feedback_reaction_generic&ref=notif
@@ -139,7 +148,15 @@ fun main() {
 //        }
         adPostsCounter++
     }
+}
 
+private fun processFpPost(
+    logger: KLogger,
+    facebook: Facebook,
+    facebookProperties: FacebookProperties,
+    facebook4jProperties: Facebook4jProperties,
+    facebookReplies: FacebookReplies
+) {
     /************************
      * Fanpage Posts
      ***********************/
@@ -172,7 +189,8 @@ fun main() {
         // shared posts using workaround
         // TODO checking if value is not null is not elegant (it's done because when object is created browser window is spawned which is not necessary when only API is used)
         if (facebookProperties.getProperty("workaround-enabled") == "true" &&
-            facebookSharedPosts !== null) {
+            facebookSharedPosts !== null
+        ) {
             logger.info("\tlooking into shared posts using workaround")
             facebookSharedPosts.openSharedPosts(post.id)
         }
@@ -183,10 +201,8 @@ fun main() {
         logger.info("added comment to ${facebookReplies.commentedPosts} comments via API")
     }
     if (facebookProperties.getProperty("workaround-enabled") == "true" &&
-        facebookSharedPosts !== null) {
+        facebookSharedPosts !== null
+    ) {
         logger.info("added comment to ${facebookSharedPosts.commentedPosts} comments via shared posts workaround")
     }
-
-    exitProcess(0)
-
 }
