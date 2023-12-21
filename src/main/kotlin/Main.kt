@@ -21,7 +21,7 @@ fun main() {
      * Ad Posts
      ***********************/
 
-    var postNumber = 1
+    var adPostsCounter = 1
     // TODO figure out can we get id's of ad posts from API
     val adPostIds: List<String> = listOf(
         "105161449087504_pfbid02Qnx3ctSvN2Z2JJDEzp25kcdsLgNVSNtHV1bF57psQTR5zWHY6NgEExRnSxMBw6A9l",         // 1
@@ -121,7 +121,7 @@ fun main() {
 
     for (adPostId in adPostIds) {
         val post = facebook.getPost(adPostId)
-        logger.info("in ${postNumber}/${adPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+        logger.info("in ${adPostsCounter}/${adPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under ad posts via API
         if (facebook4jProperties.getProperty("enabled") == "true") {
@@ -137,7 +137,7 @@ fun main() {
 //            facebookSharedPosts !== null) {
 //            facebookSharedPosts.openSharedPosts(adPost)
 //        }
-        postNumber++
+        adPostsCounter++
     }
 
     /************************
@@ -155,9 +155,9 @@ fun main() {
         facebookSharedPosts.switchProfileToFanPage()
     }
 
-    postNumber = 1
+    var ordinaryPostsCounter = 1
     for (post in posts) {
-        logger.info("in ${postNumber}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+        logger.info("in ${ordinaryPostsCounter}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under posts via API
         // TODO this will fail with property absent in file
@@ -176,7 +176,7 @@ fun main() {
             logger.info("\tlooking into shared posts using workaround")
             facebookSharedPosts.openSharedPosts(post.id)
         }
-        postNumber++
+        ordinaryPostsCounter++
     }
 
     if (facebook4jProperties.getProperty("enabled") == "true") {
