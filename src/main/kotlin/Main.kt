@@ -155,9 +155,9 @@ fun main() {
         facebookSharedPosts.switchProfileToFanPage()
     }
 
-    var ordinaryPostsCounter = 1
+    var fpPostsCounter = 1
     for (post in posts) {
-        logger.info("in ${ordinaryPostsCounter}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+        logger.info("in ${fpPostsCounter}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
         // comments under posts via API
         // TODO this will fail with property absent in file
@@ -176,7 +176,7 @@ fun main() {
             logger.info("\tlooking into shared posts using workaround")
             facebookSharedPosts.openSharedPosts(post.id)
         }
-        ordinaryPostsCounter++
+        fpPostsCounter++
     }
 
     if (facebook4jProperties.getProperty("enabled") == "true") {
