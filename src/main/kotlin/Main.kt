@@ -1,5 +1,6 @@
 import facebook4j.*
 import mu.KotlinLogging
+import pl.bnowakowski.facebook_commenter.FacebookPost
 import kotlin.system.exitProcess
 
 

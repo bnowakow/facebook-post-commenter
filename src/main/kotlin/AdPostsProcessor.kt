@@ -19,6 +19,7 @@ class AdPostsProcessor {
 
         var adPostsCounter = 1
         // TODO figure out can we get id's of ad posts from API
+        // For now manually taken from https://business.facebook.com/latest/inbox/facebook?asset_id=105161449087504&mailbox_id=105161449087504
 
         val uri = Thread.currentThread().getContextClassLoader().getResource("adPosts.txt")?.toURI()
         val uniqueAdPostIds = File(uri).useLines { it.toList() }
