@@ -1,7 +1,10 @@
 import facebook4j.Facebook
+import facebook4j.FacebookException
 import mu.KLogger
 import pl.bnowakowski.facebook_commenter.FacebookPost
 import java.io.File
+
+private const val emptyId = ""
 
 class AdPostsProcessor {
     fun processAdPost(
@@ -18,8 +21,10 @@ class AdPostsProcessor {
         // TODO figure out can we get id's of ad posts from API
 
         val uri = Thread.currentThread().getContextClassLoader().getResource("adPosts.txt")?.toURI()
-        val adPostIdPairs = File (uri).useLines { it.toList() }.associateBy( { facebook.getPost(it).id}, {it})
-        val uniqueAdPostIds = adPostIdPairs.keys
+        val uniqueAdPostIds = File(uri).useLines { it.toList() }
+            .map { longId -> getShortId(facebook, longId) }
+            .filter { shortId -> shortId != emptyId }
+            .toSet()
 
         logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
@@ -44,4 +49,10 @@ class AdPostsProcessor {
             adPostsCounter++
         }
     }
+    private fun getShortId(facebook: Facebook, longId: String): String? =
+        try {
+            facebook.getPost(longId).id
+        } catch (e: FacebookException) {
+            emptyId
+        }
 }
