@@ -2,5 +2,6 @@ version: "3.9"
 
 services:
   facebook-post-commenter:
-    build: .
+#    build: .
+    image: bnowakow/facebook-post-commenter:latest
 
