@@ -76,7 +76,7 @@ class FacebookReplies(private val facebook: Facebook) {
                         logger.error(e.message)
                     }
 
-                    val numberOfSeconds: Long = (10..120).random().toLong()
+                    val numberOfSeconds: Long = (120..360).random().toLong()
                     logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
                     Thread.sleep(1000 * numberOfSeconds)
                 }
