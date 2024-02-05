@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     implementation("org.facebook4j:facebook4j-core:2.4.13")
+    implementation("com.restfb:restfb:2024.2.0")
     implementation("commons-io:commons-io:2.15.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.7")

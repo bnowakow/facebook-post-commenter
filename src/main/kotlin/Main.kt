@@ -6,10 +6,12 @@ import kotlin.system.exitProcess
 fun main() {
 
     val facebook: Facebook = FacebookFactory().instance
-    val facebookReplies = FacebookReplies(facebook)
+    val facebook4jProperties = Facebook4jProperties()
+    val restfbClient = com.restfb.DefaultFacebookClient(facebook4jProperties.getProperty("oauth.accessToken"),
+        facebook4jProperties.getProperty("oauth.appSecret"), com.restfb.Version.VERSION_19_0)
+    val facebookReplies = FacebookReplies(facebook, restfbClient)
     val logger = KotlinLogging.logger {}
     val facebookProperties = FacebookProperties()
-    val facebook4jProperties = Facebook4jProperties()
     val fpPostsProcessor = FpPostsProcessor()
     val adPostsProcessor = AdPostsProcessor()
 

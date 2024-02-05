@@ -1,14 +1,35 @@
+import com.restfb.*
 import facebook4j.*
+import facebook4j.Facebook
 import mu.KotlinLogging
+import kotlin.collections.ArrayList
 
 
-class FacebookReplies(private val facebook: Facebook) {
+class FacebookReplies(private val facebook: Facebook, private val restfbClient: FacebookClient) {
 
     var commentedPosts = 0
     private val logger = KotlinLogging.logger {}
 
+    private fun isCommentWrittenByOneOfAdminsRestfb(comment: com.restfb.types.Comment): Boolean {
+        return comment.from?.id == "105161449087504" // Kuba
+    }
+
     private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
         return comment.from?.id == "105161449087504" // Kuba
+    }
+
+    private fun isCommentRepliedByOneOfAdminsRestfb(comment: com.restfb.types.Comment): Boolean {
+
+        val commentsOfComment: ArrayList<com.restfb.types.Comment> = fetchAllComments(comment.id)
+
+        logger.debug("\t\t\thas comment ${comment.message}")
+        for (commentOfComment in commentsOfComment) {
+            logger.trace("\t\t\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message.replace("\n", "")}")
+            if (isCommentWrittenByOneOfAdminsRestfb(commentOfComment)) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun isCommentRepliedByOneOfAdmins(comment: Comment): Boolean {
@@ -60,6 +81,31 @@ class FacebookReplies(private val facebook: Facebook) {
         }
     }
 
+    private fun checkIfAllCommentsContainAdminCommentRestfb(comments: ArrayList<com.restfb.types.Comment>) {
+        for (comment in comments) {
+
+            if (!isCommentWrittenByOneOfAdminsRestfb(comment)) {
+                if (!isCommentRepliedByOneOfAdminsRestfb(comment)) {
+
+                    facebook.likePost(comment.id)
+                    val replyMessage: String = randomizeThankYouReply()
+                    logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
+                    try {
+                        facebook.commentPost(comment.id, replyMessage)
+                        commentedPosts++
+                    } catch (e: Exception) {
+                        logger.error(e.message)
+                    }
+
+                    val numberOfSeconds: Long = (120..360).random().toLong()
+                    logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
+                    Thread.sleep(1000 * numberOfSeconds)
+                }
+
+            }
+        }
+    }
+
     private fun checkIfAllCommentsContainAdminComment(comments: PagableList<Comment>) {
         for (comment in comments) {
 
@@ -84,26 +130,33 @@ class FacebookReplies(private val facebook: Facebook) {
         }
     }
 
+
+    private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
+        var commentConnection: Connection<com.restfb.types.Comment> = restfbClient.fetchConnection(
+            "$postId/comments", com.restfb.types.Comment::class.java,
+            Parameter.with("fields", "id,from{name,id},message")
+        )
+
+        val allComments: ArrayList<com.restfb.types.Comment> = ArrayList()
+        while (true) {
+            for (commentList in commentConnection) {
+                allComments.addAll(commentList)
+            }
+            if (commentConnection.nextPageUrl != null) {
+                commentConnection = restfbClient.fetchConnectionPage(commentConnection.nextPageUrl, com.restfb.types.Comment::class.java)
+            } else {
+                break
+            }
+        }
+
+        return allComments
+    }
+
     fun checkIfAllCommentsUnderPostContainAdminComment(post: Post) {
-        val commentLimitNumber = 250
-        val comments: PagableList<Comment> = facebook.getPostComments(post.id, Reading().limit(commentLimitNumber))
 
-        logger.info("\t\tgot ${comments.size} comments on first page with limit of $commentLimitNumber")
-        check(commentLimitNumber > comments.size)
+        val allComments = this.fetchAllComments(post.id)
+        logger.info("\t\tgot ${allComments.size} comments")
 
-        // debug
-        //        var paging: Paging<Comment> = comments.paging
-//        var comments2: PagableList<Comment> = facebook.fetchNext(paging)
-//        var paging2: Paging<Comment> = comments2.paging
-//        var comments3: PagableList<Comment> = facebook.fetchNext(paging2)
-//        var paging3: Paging<Comment> = comments3.paging
-        // \debug
-
-//        while (comments.paging?.next !== null) {
-//            var url: URL = comments.paging.next
-//            comments = facebook.fetchNext(comments.paging)
-//        }
-
-        checkIfAllCommentsContainAdminComment(comments)
+        checkIfAllCommentsContainAdminCommentRestfb(allComments)
     }
 }
