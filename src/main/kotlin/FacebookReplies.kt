@@ -3,7 +3,14 @@ import com.restfb.FacebookClient
 import com.restfb.Parameter
 import facebook4j.*
 import mu.KotlinLogging
-import kotlin.collections.ArrayList
+import org.springframework.http.MediaType
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
+import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 class FacebookReplies(private val facebook: Facebook, private val restfbClient: FacebookClient) {
@@ -46,6 +53,25 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
         }
         return false
     }
+
+    // debug public
+//    public fun shortenUrl(longUrl: String): String {
+//        var bodyValues: MultiValueMap<String, String> = LinkedMultiValueMap()
+//        bodyValues["url"] = URLEncoder.encode(longUrl, StandardCharsets.UTF_8)
+//
+//        val client = WebClient.create()
+//
+//        val result: String = client.post()
+//            .uri(URI("https://cleanuri.com/api/v1/shorten"))
+//            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//            .accept(MediaType.APPLICATION_JSON)
+//            .body(BodyInserters.fromFormData(bodyValues))
+//            .retrieve()
+//            .bodyToMono(String::class.java)
+//            .block();
+//
+//        return ""
+//    }
 
     companion object {
         fun randomizeThankYouReply(): String {
@@ -144,7 +170,7 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
                         logger.error(e.message)
                     }
 
-                    val numberOfSeconds: Long = (120..360).random().toLong()
+                    val numberOfSeconds: Long = (30..120).random().toLong()
                     logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
                     Thread.sleep(1000 * numberOfSeconds)
                 }
