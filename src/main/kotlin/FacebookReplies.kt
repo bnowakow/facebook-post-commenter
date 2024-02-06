@@ -3,6 +3,8 @@ import com.restfb.FacebookClient
 import com.restfb.Parameter
 import facebook4j.*
 import mu.KotlinLogging
+import kotlin.math.min
+
 //import org.springframework.http.MediaType
 //import org.springframework.util.LinkedMultiValueMap
 //import org.springframework.util.MultiValueMap
@@ -18,33 +20,14 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
     var commentedPosts = 0
     private val logger = KotlinLogging.logger {}
 
-    private fun isCommentWrittenByOneOfAdminsRestfb(comment: com.restfb.types.Comment): Boolean {
+    private fun isCommentWrittenByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
         return comment.from?.id == "105161449087504" // Kuba
     }
 
-    private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
-        return comment.from?.id == "105161449087504" // Kuba
-    }
-
-    private fun isCommentRepliedByOneOfAdminsRestfb(comment: com.restfb.types.Comment): Boolean {
+    private fun isCommentRepliedByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
 
         val commentsOfComment: ArrayList<com.restfb.types.Comment> = fetchAllComments(comment.id)
 
-        logger.debug("\t\t\thas comment ${comment.message}")
-        for (commentOfComment in commentsOfComment) {
-            logger.trace("\t\t\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message.replace("\n", "")}")
-            if (isCommentWrittenByOneOfAdminsRestfb(commentOfComment)) {
-                return true
-            }
-        }
-        return false
-    }
-
-    private fun isCommentRepliedByOneOfAdmins(comment: Comment): Boolean {
-
-        val commentsOfComment: ResponseList<Comment> = facebook.getCommentReplies(comment.id)
-
-        logger.debug("\t\t\thas comment ${comment.message}")
         for (commentOfComment in commentsOfComment) {
             logger.trace("\t\t\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message.replace("\n", "")}")
             if (isCommentWrittenByOneOfAdmins(commentOfComment)) {
@@ -74,7 +57,7 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
 //    }
 
     companion object {
-        fun randomizeThankYouReply(): String {
+        fun randomizeThankYouReply(randomizeUrls: Boolean = true): String {
             val reply: StringBuilder = StringBuilder()
             reply.append(listOf("", "Bardzo Tobie", "Bardzo Ci").random())
             if (reply.isNotEmpty()) {
@@ -97,66 +80,51 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             reply.append(listOf("<3", "(:", ":)", "").random())
             reply.append(listOf("\n", "\n\n", " ").random())
             reply.append("Link do mojej zbiórki: ")
-            reply.append(
-                listOf(
-                    "http://siepomaga.pl/raczka-kuby",
-                    "https://cleanuri.com/8w37mQ",
-                    "https://cleanuri.com/BGN7lp",
-                    "https://cleanuri.com/rP52Yl",
-                    "https://cleanuri.com/w9A129",
-                    "https://cleanuri.com/bNpJrr",
-                ).random()
-            )
+            if (randomizeUrls) {
+                reply.append(
+                    listOf(
+                        "http://siepomaga.pl/raczka-kuby",
+                        "https://cleanuri.com/8w37mQ",
+                        "https://cleanuri.com/BGN7lp",
+                        "https://cleanuri.com/rP52Yl",
+                        "https://cleanuri.com/w9A129",
+                        "https://cleanuri.com/bNpJrr",
+                    ).random()
+                )
+            } else {
+                reply.append("http://siepomaga.pl/raczka-kuby")
+            }
+
             reply.append(" ")
 
             if (java.time.LocalDate.now().month.value <= 4) {
                 // tax deduction usually can be done until end of April
                 reply.append(listOf("\n", "\n\n", " ").random())
                 reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: ")
-                reply.append(
-                    listOf(
-                        "https://www.siepomaga.pl/raczka-kuby/procent-podatku",
-                        "https://cleanuri.com/dA9zr6",
-                        "https://cleanuri.com/VYoWeL",
-                        "https://cleanuri.com/dA9zQY",
-                        "https://cleanuri.com/jzpvdA",
-                        "https://cleanuri.com/Q2N6jR",
-                    ).random()
-                )
+                if (randomizeUrls) {
+                    reply.append(
+                        listOf(
+                            "https://www.siepomaga.pl/raczka-kuby/procent-podatku",
+                            "https://cleanuri.com/dA9zr6",
+                            "https://cleanuri.com/VYoWeL",
+                            "https://cleanuri.com/dA9zQY",
+                            "https://cleanuri.com/jzpvdA",
+                            "https://cleanuri.com/Q2N6jR",
+                        ).random()
+                    )
+                } else {
+                    reply.append("https://www.siepomaga.pl/raczka-kuby/procent-podatku")
+                }
             }
 
             return reply.toString()
         }
     }
 
-    private fun checkIfAllCommentsContainAdminCommentRestfb(comments: ArrayList<com.restfb.types.Comment>) {
-        for (comment in comments) {
+    private fun checkIfAllCommentsContainAdminComment(comments: ArrayList<com.restfb.types.Comment>) {
+        for ((i, comment) in comments.withIndex()) {
 
-            if (!isCommentWrittenByOneOfAdminsRestfb(comment)) {
-                if (!isCommentRepliedByOneOfAdminsRestfb(comment)) {
-
-                    facebook.likePost(comment.id)
-                    val replyMessage: String = randomizeThankYouReply()
-                    logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
-                    try {
-                        facebook.commentPost(comment.id, replyMessage)
-                        commentedPosts++
-                    } catch (e: Exception) {
-                        logger.error(e.message)
-                    }
-
-                    val numberOfSeconds: Long = (30..120).random().toLong()
-                    logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
-                    Thread.sleep(1000 * numberOfSeconds)
-                }
-
-            }
-        }
-    }
-
-    private fun checkIfAllCommentsContainAdminComment(comments: PagableList<Comment>) {
-        for (comment in comments) {
-
+            logger.debug("\t\t\thas comment $i/${comments.size} [${comment.message.substring(0, min(comment.message.length, 30))}]")
             if (!isCommentWrittenByOneOfAdmins(comment)) {
                 if (!isCommentRepliedByOneOfAdmins(comment)) {
 
@@ -174,12 +142,11 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
                     logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
                     Thread.sleep(1000 * numberOfSeconds)
                 }
+
             }
         }
     }
-
-
-    private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
+private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
         var commentConnection: Connection<com.restfb.types.Comment> = restfbClient.fetchConnection(
             "$postId/comments", com.restfb.types.Comment::class.java,
             Parameter.with("fields", "id,from{name,id},message")
@@ -205,6 +172,6 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
         val allComments = this.fetchAllComments(post.id)
         logger.info("\t\tgot ${allComments.size} comments")
 
-        checkIfAllCommentsContainAdminCommentRestfb(allComments)
+        checkIfAllCommentsContainAdminComment(allComments)
     }
 }

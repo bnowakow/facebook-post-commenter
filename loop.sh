@@ -12,7 +12,7 @@ git pull
 docker buildx build --platform linux/amd64  --tag bnowakow/facebook-post-commenter:latest .
 
 while true; do
-    timeout 3600 docker compose up
+    timeout 10800 docker compose up
     docker compose down
     date
     sleep 6h

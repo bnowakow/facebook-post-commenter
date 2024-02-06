@@ -82,7 +82,7 @@ class FacebookSharedPosts {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
             Thread.sleep(100)
             val elementText = driver.switchTo().activeElement().text
-            logger.debug("tab i=$i element_txt=$elementText")
+            logger.trace("tab i=$i element_txt=$elementText")
             if (elementText.equals("Decline optional cookies")) {
                 break
             }
@@ -322,12 +322,12 @@ class FacebookSharedPosts {
                 val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
                 if (commentTextBoxPosition > -1) {
                     // can be commented
-                    logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can be commented")
+                    logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
                     if (adminUsernamePosition == -1) {
                         // no comment from admin of fan page
                         logger.debug("\t\t\tpost doesn't contain admin response")
-                        val replyMessage: String = FacebookReplies.randomizeThankYouReply()
+                        val replyMessage: String = FacebookReplies.randomizeThankYouReply(false)
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         logger.info("\t\t\ttrying to press Tab comment text box")
