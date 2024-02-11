@@ -239,7 +239,7 @@ class FacebookSharedPosts {
         var numberOfConfirmations: Long = 0
         for (scrollNumber in 1..scrollTimeout) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
-            Thread.sleep(500)
+            Thread.sleep(1200)
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight <= previousScrollHeight) {
                 currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
@@ -346,6 +346,8 @@ class FacebookSharedPosts {
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
