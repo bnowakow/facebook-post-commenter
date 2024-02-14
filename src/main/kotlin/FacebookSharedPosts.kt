@@ -169,6 +169,7 @@ class FacebookSharedPosts {
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/a/div[1]/div[3]/span/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[3]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/a/div[1]/div[3]/span/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/span/div/div/div/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/div[2]/span/div/div[1]/div[1]/span/div",
             ))
         } else {
@@ -232,14 +233,14 @@ class FacebookSharedPosts {
         scalePage(55)
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 150
+        val scrollTimeout = 8 // was 150 but produced too many temporary block of /shares endpoint
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
         var numberOfConfirmations: Long = 0
         for (scrollNumber in 1..scrollTimeout) {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.PAGE_DOWN)
-            Thread.sleep(1200)
+            Thread.sleep(12000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
             val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
             if (currentScrollHeight <= previousScrollHeight) {
                 currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
