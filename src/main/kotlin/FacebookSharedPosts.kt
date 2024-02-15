@@ -5,6 +5,7 @@ import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
 import java.io.File
 import org.apache.commons.io.FileUtils
+import java.lang.RuntimeException
 import kotlin.NoSuchElementException
 
 
@@ -224,7 +225,7 @@ class FacebookSharedPosts {
                 if (clickOnElement) {
                     driver.findElement(By.xpath(xpath))
                         .click()
-                    Thread.sleep(5000)
+                    Thread.sleep(10000)
                 }
                 return XpathElementFound(true, xpath)
             } else {
@@ -250,17 +251,28 @@ class FacebookSharedPosts {
         ), true)
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 50 // was 150 but produced too many temporary block of /shares endpoint
+        val scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
         var numberOfConfirmations: Long = 0
-        clickElementIfOneInListExists(listOf(
-            "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]",
-        ), false)
+        var chosenXpathElementFound: XpathElementFound
+        try {
+            chosenXpathElementFound = clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]",
+                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]",
+                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
+                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
+
+                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
+            ), false)
+        } catch(exception: Exception) {
+            logger.error("\t\tcouldn't scroll to load all posts")
+            return
+        }
         for (scrollNumber in 1..scrollTimeout) {
             // TODO get xpath from above
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]")).sendKeys(Keys.PAGE_DOWN)
+            driver.findElement(By.xpath(chosenXpathElementFound.xpath)).sendKeys(Keys.PAGE_DOWN)
 
             Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
             // TODO return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
@@ -361,13 +373,22 @@ class FacebookSharedPosts {
                         logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
                         logger.info("\t\t\ttrying to press Tab comment text box")
-                        val commentTextFieldPossibleXpaths = clickElementIfOneInListExists(listOf(
+                        var commentTextFieldPossibleXpaths: XpathElementFound
+                        try {
+                            commentTextFieldPossibleXpaths = clickElementIfOneInListExists(listOf(
                             "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
                             "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
 
                         ), false)
+                        } catch(exception: Exception) {
+                            logger.error("\t\t\tcouldn't click on comment text box")
+                            // TODO repeat with below, move to function
+                            postNumber++
+                            pageSource = pageSource.substringAfter("<a aria-label=\"")
+                            continue
+                        }
 
                         try {
                             if (facebookProperties.getProperty("username").contains("kuba")) {
