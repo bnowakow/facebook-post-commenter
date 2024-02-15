@@ -250,7 +250,7 @@ class FacebookSharedPosts {
         ), true)
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 20 // was 150 but produced too many temporary block of /shares endpoint
+        val scrollTimeout = 50 // was 150 but produced too many temporary block of /shares endpoint
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
