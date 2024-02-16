@@ -5,7 +5,6 @@ import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
 import java.io.File
 import org.apache.commons.io.FileUtils
-import java.lang.RuntimeException
 import kotlin.NoSuchElementException
 
 
@@ -246,12 +245,17 @@ class FacebookSharedPosts {
 
 //        scalePage(55)
 
-        clickElementIfOneInListExists(listOf(
-            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
-        ), true)
+        try {
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
+            ), true)
+        } catch(exception: Exception) {
+            logger.error("\t\tcouldn't click link to shared posts")
+            return
+        }
 
         // scroll down to bottom of page to load all posts (lazy loading)
-        val scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
+        var scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
         var previousScrollHeight: Long = -1
         var previousNumberOfSegments: Int = -1
         var currentNumberOfSegments: Int
@@ -263,8 +267,6 @@ class FacebookSharedPosts {
                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]",
                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
-
-                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
             ), false)
         } catch(exception: Exception) {
             logger.error("\t\tcouldn't scroll to load all posts")
@@ -313,11 +315,12 @@ class FacebookSharedPosts {
                 logger.info("\t\ttrying to press Tab on like in first post")
                 clickElementIfOneInListExists(listOf(
                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
                 ), false)
 
                 // TODO check if locale of accounts are different and this causes below
@@ -361,8 +364,11 @@ class FacebookSharedPosts {
                 //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
                 val postSource: String = pageSource.substringBefore("<a aria-label=\"")
                 val postAuthor: String = postSource.substringBefore("\"")
-                val commentTextBoxPosition: Int = postSource.indexOf("Write a comment")
-                if (commentTextBoxPosition > -1) {
+                if (doesStringContainAnySubstringInList(postSource, listOf(
+                        "Write a comment",
+                        "Write a public comment",
+                        "Submit your first comment",
+                    ))) {
                     // can be commented
                     logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
                     val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
@@ -445,6 +451,16 @@ class FacebookSharedPosts {
         } else {
             logger.info("\t\tpost doesn't have any shared posts")
         }
+    }
+
+    private fun doesStringContainAnySubstringInList(postSource: String, substringList: List<String>): Boolean {
+
+        for (substring: String in substringList) {
+            if (postSource.indexOf("Submit your first comment") > -1) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun scalePage(scale: Int) {
