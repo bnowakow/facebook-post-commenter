@@ -237,219 +237,315 @@ class FacebookSharedPosts {
         return XpathElementFound(false)
     }
 
+    enum class SharedPostStrategy {
+        CLICK_ON_SHARED_POSTS, USE_SHARED_ENDPOINT
+    }
+
     fun openSharedPosts(postId: String) {
 
-        val id = postId.substringAfter("_")
-        driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
-        Thread.sleep(5000)
+        run breaking@ {
+            SharedPostStrategy.values().forEach {
+
+                val id = postId.substringAfter("_")
+                when (it) {
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
+                    SharedPostStrategy.USE_SHARED_ENDPOINT -> driver["https://www.facebook.com/shares/view?id=$id"]
+                }
+
+                Thread.sleep(5000)
 
 //        scalePage(55)
 
-        try {
-            clickElementIfOneInListExists(listOf(
-                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
-            ), true)
-        } catch(exception: Exception) {
-            logger.error("\t\tcouldn't click link to shared posts")
-            return
-        }
-
-        // scroll down to bottom of page to load all posts (lazy loading)
-        var scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
-        var previousScrollHeight: Long = -1
-        var previousNumberOfSegments: Int = -1
-        var currentNumberOfSegments: Int
-        var numberOfConfirmations: Long = 0
-        var chosenXpathElementFound: XpathElementFound
-        try {
-            chosenXpathElementFound = clickElementIfOneInListExists(listOf(
-                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]",
-                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]",
-                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
-                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
-            ), false)
-        } catch(exception: Exception) {
-            logger.error("\t\tcouldn't scroll to load all posts")
-            return
-        }
-        for (scrollNumber in 1..scrollTimeout) {
-            // TODO get xpath from above
-            driver.findElement(By.xpath(chosenXpathElementFound.xpath)).sendKeys(Keys.PAGE_DOWN)
-
-            Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
-            // TODO return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
-            val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
-            if (currentScrollHeight <= previousScrollHeight) {
-                currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
-                if (currentNumberOfSegments <= previousNumberOfSegments) {
-                    numberOfConfirmations++
-                    if (numberOfConfirmations > 2) {
-                        logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
-                        break
+                if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS) {
+                    try {
+                        clickElementIfOneInListExists(
+                            listOf(
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
+                            ), true
+                        )
+                    } catch (exception: Exception) {
+                        logger.error("\t\tcouldn't click link to shared posts using ${it.name} strategy")
+                        return@forEach
                     }
-                } else {
-                    numberOfConfirmations = 0
                 }
-                previousNumberOfSegments = currentNumberOfSegments
-            }
-            previousScrollHeight = currentScrollHeight
-            if (scrollNumber % 50 == 0) {
-                // should be debugged but can't set netty to info then
-                logger.info("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries")
-            }
-        }
 
-        // scroll to the top of page (focus is still at the bottom)
-        // TODO return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
+                // scroll down to bottom of page to load all posts (lazy loading)
+                var scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
+                if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
+                    scrollTimeout = 5
+                }
+                scrollTimeout = 2 // TODO DEBUG remove
+                var previousScrollHeight: Long = -1
+                var previousNumberOfSegments: Int = -1
+                var currentNumberOfSegments: Int
+                var numberOfConfirmations: Long = 0
+                var chosenXpathElementFound: XpathElementFound = XpathElementFound(found = false)
+
+                if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS) {
+                    try {
+                        chosenXpathElementFound = clickElementIfOneInListExists(
+                            listOf(
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]",
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]",
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
+                            ), false
+                        )
+                    } catch (exception: Exception) {
+                        logger.error("\t\tcouldn't scroll to load all posts using ${it.name} strategy")
+                        return@forEach
+                    }
+                }
+                for (scrollNumber in 1..scrollTimeout) {
+
+                    when (it) {
+                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
+                            .sendKeys(Keys.PAGE_DOWN)
+
+                        SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.findElement(By.cssSelector("body"))
+                            .sendKeys(Keys.PAGE_DOWN)
+                    }
+
+                    Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
+                    // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
+                    val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
+                    if (currentScrollHeight <= previousScrollHeight) {
+                        currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
+                        if (currentNumberOfSegments <= previousNumberOfSegments) {
+                            numberOfConfirmations++
+                            if (numberOfConfirmations > 2) {
+                                logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries using ${it.name} strategy")
+                                break
+                            }
+                        } else {
+                            numberOfConfirmations = 0
+                        }
+                        previousNumberOfSegments = currentNumberOfSegments
+                    }
+                    previousScrollHeight = currentScrollHeight
+                    if (scrollNumber % 50 == 0) {
+                        // should be debugged but can't set netty to info then
+                        logger.info("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries using ${it.name} strategy")
+                    }
+                }
+
+                // scroll to the top of page (focus is still at the bottom)
+                // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
 //        js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
 //        Thread.sleep(4000)
 
-        for (scrollNumber in 1..scrollTimeout) {
-            driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]")).sendKeys(Keys.PAGE_UP)
-        }
-
-        var pageSource: String
-        if (driver.pageSource.indexOf("People who shared this") > -1) {
-            if (facebookProperties.getProperty("username").contains("kuba")) {
-                // send tab from like of first post should bring back focus to the top
-                logger.info("\t\ttrying to press Tab on like in first post")
-                clickElementIfOneInListExists(listOf(
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
-                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
-                ), false)
-
-                // TODO check if locale of accounts are different and this causes below
-                pageSource = driver.pageSource.substringAfter("People who shared this")
-            } else {
-                // send tab from like of first post should bring back focus to the top
-                logger.info("\t\ttrying to press Tab on like in first post")
-                clickElementIfOneInListExists(listOf(
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",            // like button
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",               // like button
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[3]/div",                   // share button
-                ))
-
-                // TODO check if locale of accounts are different and this causes below - UK?
-                pageSource = driver.pageSource.substringAfter("People Who Shared This")
-            }
-
-            pageSource = pageSource
-                .substringAfter("Enlarge")  // for video
-                .replace("<a aria-label=\"May be an image of", "")
-                .replace("<a aria-label=\"Home", "")
-                .replace("<a aria-label=\"Watch", "")
-                .replace("<a aria-label=\"Groups", "")
-                .replace("<a aria-label=\"Gaming", "")
-                .replace("<a aria-label=\"Events", "")
-                .replace("<a aria-label=\"More", "")
-                .replace("<a aria-label=\"Notifications", "")
-                .replace("<a aria-label=\"Messenger", "")
-                .replace("<a aria-label=\"Messenger", "")
-                .replace("<a aria-label=\"Click to view attachment\"", "")
-                .substringAfter("<a aria-label=\"")
-
-            val totalPostNumber = pageSource.split("<a aria-label=\"").size
-            var postNumber = 1
-            while (true) {
-                // TODO fix edge case for last comment
-                val nextPostStartPosition: Int = pageSource.indexOf("<a aria-label=\"")
-                if (nextPostStartPosition == -1) {
-                    break
+                for (scrollNumber in 1..scrollTimeout) {
+                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
+                        .sendKeys(Keys.PAGE_UP)
                 }
-                //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
-                val postSource: String = pageSource.substringBefore("<a aria-label=\"")
-                val postAuthor: String = postSource.substringBefore("\"")
-                if (doesStringContainAnySubstringInList(postSource, listOf(
-                        "Write a comment",
-                        "Write a public comment",
-                        "Submit your first comment",
-                    ))) {
-                    // can be commented
-                    logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
-                    val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
-                    if (adminUsernamePosition == -1) {
-                        // no comment from admin of fan page
-                        logger.debug("\t\t\tpost doesn't contain admin response")
-                        val replyMessage: String = FacebookReplies.randomizeThankYouReply(false)
-                        logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
-                        logger.info("\t\t\ttrying to press Tab comment text box")
-                        var commentTextFieldPossibleXpaths: XpathElementFound
-                        try {
-                            commentTextFieldPossibleXpaths = clickElementIfOneInListExists(listOf(
-                            "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
-                            "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                var pageSource: String
+                val indexOfSharedPostsHeading = when (it) {
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.pageSource.indexOf("People who shared this")
+                    SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.pageSource.indexOf("Shared with Public</title>")
+                }
+                if (indexOfSharedPostsHeading > -1) {
+                    if (facebookProperties.getProperty("username").contains("kuba")) {
+                        // send tab from like of first post should bring back focus to the top
+                        logger.info("\t\ttrying to press Tab on like in first post")
+                        when (it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS -> clickElementIfOneInListExists(
+                                listOf(
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                ), false
+                            )
 
-                        ), false)
-                        } catch(exception: Exception) {
-                            logger.error("\t\t\tcouldn't click on comment text box")
-                            // TODO repeat with below, move to function
-                            postNumber++
-                            pageSource = pageSource.substringAfter("<a aria-label=\"")
-                            continue
+                            SharedPostStrategy.USE_SHARED_ENDPOINT -> clickElementIfOneInListExists(
+                                listOf(
+                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
+                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                ), false
+                            )
                         }
 
-                        try {
-                            if (facebookProperties.getProperty("username").contains("kuba")) {
-                                // chrome
+
+                        // TODO check if locale of accounts are different and this causes below
+                        pageSource = driver.pageSource.substringAfter("People who shared this")
+                    } else {
+                        // send tab from like of first post should bring back focus to the top
+                        logger.info("\t\ttrying to press Tab on like in first post")
+                        clickElementIfOneInListExists(
+                            listOf(
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",            // like button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",               // like button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[3]/div",                   // share button
+                            )
+                        )
+
+                        // TODO check if locale of accounts are different and this causes below - UK?
+                        pageSource = driver.pageSource.substringAfter("People Who Shared This")
+                    }
+
+                    pageSource = pageSource
+                        .substringAfter("Enlarge")  // for video
+                        .replace("<a aria-label=\"May be an image of", "")
+                        .replace("<a aria-label=\"Home", "")
+                        .replace("<a aria-label=\"Watch", "")
+                        .replace("<a aria-label=\"Groups", "")
+                        .replace("<a aria-label=\"Gaming", "")
+                        .replace("<a aria-label=\"Events", "")
+                        .replace("<a aria-label=\"More", "")
+                        .replace("<a aria-label=\"Notifications", "")
+                        .replace("<a aria-label=\"Messenger", "")
+                        .replace("<a aria-label=\"Messenger", "")
+                        .replace("<a aria-label=\"Click to view attachment\"", "")
+                        .substringAfter("<a aria-label=\"")
+
+                    val totalPostNumber = pageSource.split("<a aria-label=\"").size
+                    var postNumber = 1
+                    while (true) {
+                        // TODO fix edge case for last comment
+                        val nextPostStartPosition: Int = pageSource.indexOf("<a aria-label=\"")
+                        if (nextPostStartPosition == -1) {
+                            return@breaking
+                        }
+                        //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
+                        val postSource: String = pageSource.substringBefore("<a aria-label=\"")
+                        val postAuthor: String = postSource.substringBefore("\"")
+                        if (doesStringContainAnySubstringInList(
+                                postSource, listOf(
+                                    "Write a comment",
+                                    "Write a public comment",
+                                    "Submit your first comment",
+                                )
+                            )
+                        ) {
+                            // can be commented
+                            logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
+                            val adminUsernamePosition = postSource.indexOf("Kuba Dobrowolski-Nowakowski")
+                            if (adminUsernamePosition == -1) {
+                                // no comment from admin of fan page
+                                logger.debug("\t\t\tpost doesn't contain admin response")
+                                val replyMessage: String = FacebookReplies.randomizeThankYouReply(false)
+                                logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
+
+                                logger.info("\t\t\ttrying to press Tab comment text box")
+                                var commentTextFieldPossibleXpaths: XpathElementFound = XpathElementFound(found = false)
+                                try {
+
+                                    when (it) {
+                                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> commentTextFieldPossibleXpaths =
+                                            clickElementIfOneInListExists(
+                                                listOf(
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                ), false
+                                            )
+
+                                        SharedPostStrategy.USE_SHARED_ENDPOINT -> commentTextFieldPossibleXpaths =
+                                            clickElementIfOneInListExists(
+                                                listOf(
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div[2]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[2]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                                                ), false
+                                            )
+                                    }
+
+                                } catch (exception: Exception) {
+                                    logger.error("\t\t\tcouldn't click on comment text box")
+                                    // TODO repeat with below, move to function
+                                    postNumber++
+                                    pageSource = pageSource.substringAfter("<a aria-label=\"")
+                                    continue
+                                }
+
+                                try {
+                                    if (facebookProperties.getProperty("username").contains("kuba")) {
+                                        // chrome
 //                              driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
 //                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
-                                // firefox
-                                for (letter in replyMessage.replace("\n", " ")) {
-                                    driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                        .sendKeys(letter.toString())
-                                    Thread.sleep(50)
-                                }
-                                Thread.sleep(500)
-                                driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                    .sendKeys(Keys.RETURN)
+                                        // firefox
+                                        for (letter in replyMessage.replace("\n", " ")) {
+                                            driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
+                                                .sendKeys(letter.toString())
+                                            Thread.sleep(50)
+                                        }
+                                        Thread.sleep(500)
+                                        driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
+                                            .sendKeys(Keys.RETURN)
 
-                                commentedPosts++
+                                        commentedPosts++
+                                    } else {
+                                        // firefox
+                                        for (letter in replyMessage.replace("\n", " ")) {
+                                            driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
+                                                .sendKeys(letter.toString())
+                                            Thread.sleep(50)
+                                        }
+                                        Thread.sleep(500)
+                                        driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
+                                            .sendKeys(Keys.RETURN)
+
+                                        commentedPosts++
+                                    }
+                                } catch (e: NoSuchElementException) {
+                                    logger.error(e.message)
+                                    logger.error("NoSuchElementException exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
+                                } catch (e: Exception) {
+                                    logger.error(e.message)
+                                    logger.error("Exception exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
+                                }
+
+                                val numberOfSeconds: Long = (10..120).random().toLong()
+                                logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
+                                Thread.sleep(1000 * numberOfSeconds)
                             } else {
-                                // firefox
-                                for (letter in replyMessage.replace("\n", " ")) {
-                                    driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                        .sendKeys(letter.toString())
-                                    Thread.sleep(50)
-                                }
-                                Thread.sleep(500)
-                                driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                    .sendKeys(Keys.RETURN)
-
-                                commentedPosts++
+                                logger.debug("\t\t\tpost contains admin response")
+                                tabUntilGivenLabelIsFocussed(
+                                    "aria-label",
+                                    "Send this to friends or post it on your profile."
+                                )
                             }
-                        } catch (e: NoSuchElementException) {
-                            logger.error(e.message)
-                            logger.error("NoSuchElementException exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
-                        } catch (e: Exception) {
-                            logger.error(e.message)
-                            logger.error("Exception exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
+                        } else {
+                            logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can't be commented")
+                            tabUntilGivenLabelIsFocussed(
+                                "aria-label",
+                                "Send this to friends or post it on your profile."
+                            )
                         }
 
-                        val numberOfSeconds: Long = (10..120).random().toLong()
-                        logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
-                        Thread.sleep(1000 * numberOfSeconds)
-                    } else {
-                        logger.debug("\t\t\tpost contains admin response")
-                        tabUntilGivenLabelIsFocussed("aria-label", "Send this to friends or post it on your profile.")
+                        postNumber++
+                        pageSource = pageSource.substringAfter("<a aria-label=\"")
                     }
                 } else {
-                    logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can't be commented")
-                    tabUntilGivenLabelIsFocussed("aria-label", "Send this to friends or post it on your profile.")
+                    logger.info("\t\tpost doesn't have any shared posts")
                 }
-
-                postNumber++
-                pageSource = pageSource.substringAfter("<a aria-label=\"")
             }
-        } else {
-            logger.info("\t\tpost doesn't have any shared posts")
         }
     }
 
