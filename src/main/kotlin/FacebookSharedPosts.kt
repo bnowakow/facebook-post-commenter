@@ -456,7 +456,7 @@ class FacebookSharedPosts {
     private fun doesStringContainAnySubstringInList(postSource: String, substringList: List<String>): Boolean {
 
         for (substring: String in substringList) {
-            if (postSource.indexOf("Submit your first comment") > -1) {
+            if (postSource.indexOf(substring) > -1) {
                 return true
             }
         }
