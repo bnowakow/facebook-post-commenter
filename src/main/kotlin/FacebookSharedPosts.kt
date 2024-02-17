@@ -334,8 +334,14 @@ class FacebookSharedPosts {
 //        Thread.sleep(4000)
 
                 for (scrollNumber in 1..scrollTimeout) {
-                    driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
-                        .sendKeys(Keys.PAGE_UP)
+
+                    when (it) {
+                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
+                            .sendKeys(Keys.PAGE_UP)
+
+                        SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.findElement(By.cssSelector("body"))
+                            .sendKeys(Keys.PAGE_UP)
+                    }
                 }
 
                 var pageSource: String
