@@ -329,20 +329,16 @@ class FacebookSharedPosts {
                 }
 
                 // scroll to the top of page (focus is still at the bottom)
-                // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
-//        js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
-//        Thread.sleep(4000)
-
-                for (scrollNumber in 1..scrollTimeout) {
-
-                    when (it) {
-                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
+                when (it) {
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> for (scrollNumber in 1..scrollTimeout) {
+                        driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
                             .sendKeys(Keys.PAGE_UP)
-
-                        SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.findElement(By.cssSelector("body"))
-                            .sendKeys(Keys.PAGE_UP)
+                        Thread.sleep(500)
                     }
+
+                    SharedPostStrategy.USE_SHARED_ENDPOINT -> js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
                 }
+                Thread.sleep(500)
 
                 var pageSource: String
                 val indexOfSharedPostsHeading = when (it) {
@@ -487,7 +483,7 @@ class FacebookSharedPosts {
                                     }
 
                                 } catch (exception: Exception) {
-                                    logger.error("\t\t\tcouldn't click on comment text box")
+                                    logger.error("\t\t\tcouldn't click on comment text box using ${it.name} strategy")
                                     // TODO repeat with below, move to function
                                     postNumber++
                                     pageSource = pageSource.substringAfter("<a aria-label=\"")
