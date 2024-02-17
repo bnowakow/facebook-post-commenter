@@ -274,7 +274,6 @@ class FacebookSharedPosts {
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
                     scrollTimeout = 5
                 }
-                scrollTimeout = 2 // TODO DEBUG remove
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
                 var currentNumberOfSegments: Int
