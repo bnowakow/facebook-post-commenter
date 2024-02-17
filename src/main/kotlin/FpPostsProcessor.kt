@@ -49,7 +49,7 @@ class FpPostsProcessor () {
 
         var fpPostsCounter = 1
         for (post in posts) {
-            logger.info("in ${fpPostsCounter}/${posts.size} post [${post.message.substring(0, min(post.message.length, 30))}...], ${post.id}")
+            logger.info("in ${fpPostsCounter}/${posts.size} post [${post.message?.substring(0, min(post.message.length, 30))}...], ${post.id}")
 
             // comments under posts via API
             // TODO this will fail with property absent in file
