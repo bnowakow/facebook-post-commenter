@@ -21,7 +21,7 @@ fun main() {
     facebook.extendTokenExpiration()
 
     adPostsProcessor.processAdPost(logger, facebook, facebook4jProperties, facebookReplies)
-    fpPostsProcessor.processFpPost(logger, facebook, facebookProperties, facebook4jProperties, facebookReplies)
+    fpPostsProcessor.processFpPost(logger, facebookProperties, facebook4jProperties, facebookReplies, restfbClient)
     exitProcess(0)
 
 }

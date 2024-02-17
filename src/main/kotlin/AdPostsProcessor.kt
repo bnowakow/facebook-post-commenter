@@ -2,7 +2,6 @@ import facebook4j.Facebook
 import facebook4j.FacebookException
 import mu.KLogger
 import pl.bnowakowski.facebook_commenter.FacebookPost
-import java.io.File
 
 private const val emptyId = ""
 
@@ -21,33 +20,35 @@ class AdPostsProcessor {
         // TODO figure out can we get id's of ad posts from API
         // For now manually taken from https://business.facebook.com/latest/inbox/facebook?asset_id=105161449087504&mailbox_id=105161449087504
 
-        // TODO below might be stupid
-        val uniqueAdPostIds = this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().useLines { it.toList() }
-            .map { longId -> getShortId(facebook, longId) }
-            .filter { shortId -> shortId != emptyId }
-            .toSet()
+        if (facebook4jProperties.getProperty("enabled") == "true") {
 
-        logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
+            // TODO below might be stupid
+            val uniqueAdPostIds =
+                this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().useLines { it.toList() }
+                    .map { longId -> getShortId(facebook, longId) }
+                    .filter { shortId -> shortId != emptyId }
+                    .toSet()
 
-        for (adPostId in uniqueAdPostIds) {
-            val post = facebook.getPost(adPostId)
-            logger.info("in ${adPostsCounter}/${uniqueAdPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+            logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
-            // comments under ad posts via API
-            if (facebook4jProperties.getProperty("enabled") == "true") {
+            for (adPostId in uniqueAdPostIds) {
+                val post = facebook.getPost(adPostId)
+                logger.info("in ${adPostsCounter}/${uniqueAdPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+
+                // comments under ad posts via API
+
                 logger.info("\tlooking into comments under post")
-                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(
-                    facebook.getPost(adPostId)
-                )
-            }
+                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(adPostId!!)
 
-            // shared ad posts using workaround
-            // TODO check how to get shared posts of ads
+
+                // shared ad posts using workaround
+                // TODO check how to get shared posts of ads
 //        if (facebookProperties.getProperty("workaround-enabled") == "true" &&
 //            facebookSharedPosts !== null) {
 //            facebookSharedPosts.openSharedPosts(adPost)
 //        }
-            adPostsCounter++
+                adPostsCounter++
+            }
         }
     }
     private fun getShortId(facebook: Facebook, longId: String): String? =
