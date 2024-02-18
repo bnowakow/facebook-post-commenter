@@ -1,23 +1,42 @@
-import facebook4j.Facebook
-import facebook4j.Post
-import facebook4j.ResponseList
+import com.restfb.Connection
+import com.restfb.FacebookClient
 import mu.KLogger
-import pl.bnowakowski.facebook_commenter.FacebookPost
+import kotlin.math.min
 
-class FpPostsProcessor {
+class FpPostsProcessor () {
+
+    private fun fetchAllPostsFromFanpage(fanpageId: String, restfbClient: FacebookClient): ArrayList<com.restfb.types.Post> {
+        var postConnection: Connection<com.restfb.types.Post> = restfbClient.fetchConnection(
+            "$fanpageId/feed", com.restfb.types.Post::class.java,
+        )
+
+        val allPosts: ArrayList<com.restfb.types.Post> = ArrayList()
+        while (true) {
+            for (postList in postConnection) {
+                allPosts.addAll(postList)
+            }
+            if (postConnection.nextPageUrl != null) {
+                postConnection = restfbClient.fetchConnectionPage(postConnection.nextPageUrl, com.restfb.types.Post::class.java)
+            } else {
+                break
+            }
+        }
+
+        return allPosts
+    }
 
     fun processFpPost(
         logger: KLogger,
-        facebook: Facebook,
         facebookProperties: FacebookProperties,
         facebook4jProperties: Facebook4jProperties,
-        facebookReplies: FacebookReplies
+        facebookReplies: FacebookReplies,
+        restfbClient: FacebookClient
     ) {
         /************************
          * Fanpage Posts
          ***********************/
 
-        val posts: ResponseList<Post> = facebook.getPosts("105161449087504") // Kuba
+        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage("105161449087504", restfbClient)
         logger.info("will be processing ${posts.size} fan page posts:")
 
         var facebookSharedPosts: FacebookSharedPosts? = null
@@ -30,13 +49,13 @@ class FpPostsProcessor {
 
         var fpPostsCounter = 1
         for (post in posts) {
-            logger.info("in ${fpPostsCounter}/${posts.size} post [${FacebookPost.previewMessage(post)}...], ${post.id}")
+            logger.info("in ${fpPostsCounter}/${posts.size} post [${post.message?.substring(0, min(post.message.length, 30))}...], ${post.id}")
 
             // comments under posts via API
             // TODO this will fail with property absent in file
             if (facebook4jProperties.getProperty("enabled") == "true") {
                 logger.info("\tlooking into comments under post")
-                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post)
+                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post.id)
             }
 
             // shared posts via API

@@ -146,7 +146,7 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             }
         }
     }
-private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
+    private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
         var commentConnection: Connection<com.restfb.types.Comment> = restfbClient.fetchConnection(
             "$postId/comments", com.restfb.types.Comment::class.java,
             Parameter.with("fields", "id,from{name,id},message")
@@ -167,9 +167,9 @@ private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment
         return allComments
     }
 
-    fun checkIfAllCommentsUnderPostContainAdminComment(post: Post) {
+    fun checkIfAllCommentsUnderPostContainAdminComment(postId: String) {
 
-        val allComments = this.fetchAllComments(post.id)
+        val allComments = this.fetchAllComments(postId)
         logger.info("\t\tgot ${allComments.size} comments")
 
         checkIfAllCommentsContainAdminComment(allComments)
