@@ -13,7 +13,7 @@ docker buildx build --platform linux/amd64  --tag bnowakow/facebook-post-comment
 yes | docker system prune
 
 while true; do
-    timeout 10h docker compose up
+    time timeout 10h docker compose up
     docker compose down
     date
     sleep 3h
