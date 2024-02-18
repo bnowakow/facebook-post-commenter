@@ -15,13 +15,24 @@ fun main() {
     val fpPostsProcessor = FpPostsProcessor()
     val adPostsProcessor = AdPostsProcessor()
 
+    var facebookSharedPosts: FacebookSharedPosts? = null
+    if (facebookProperties.getProperty("workaround-enabled") == "true") {
+        facebookSharedPosts = FacebookSharedPosts()
+        facebookSharedPosts.loginToFacebook()
+        facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
+        facebookSharedPosts.switchProfileToFanPage()
+    }
+
+    //debug
+    //facebookReplies.shortenUrl("http://siepomaga.pl/raczka-kuby")
+
     // TODO automate inviting people liking page to join grou
     // TODO find notification with people sharing fanpage (orange flag icon in notification) and comment it
 
     facebook.extendTokenExpiration()
 
-    adPostsProcessor.processAdPost(logger, facebook, facebook4jProperties, facebookReplies)
-    fpPostsProcessor.processFpPost(logger, facebookProperties, facebook4jProperties, facebookReplies, restfbClient)
+    adPostsProcessor.processAdPost(logger, facebook, facebookProperties, facebook4jProperties, facebookReplies, facebookSharedPosts)
+    fpPostsProcessor.processFpPost(logger, facebookProperties, facebook4jProperties, facebookReplies, restfbClient, facebookSharedPosts)
     exitProcess(0)
 
 }

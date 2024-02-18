@@ -30,7 +30,8 @@ class FpPostsProcessor () {
         facebookProperties: FacebookProperties,
         facebook4jProperties: Facebook4jProperties,
         facebookReplies: FacebookReplies,
-        restfbClient: FacebookClient
+        restfbClient: FacebookClient,
+        facebookSharedPosts: FacebookSharedPosts?
     ) {
         /************************
          * Fanpage Posts
@@ -38,14 +39,6 @@ class FpPostsProcessor () {
 
         val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage("105161449087504", restfbClient)
         logger.info("will be processing ${posts.size} fan page posts:")
-
-        var facebookSharedPosts: FacebookSharedPosts? = null
-        if (facebookProperties.getProperty("workaround-enabled") == "true") {
-            facebookSharedPosts = FacebookSharedPosts()
-            facebookSharedPosts.loginToFacebook()
-            facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
-            facebookSharedPosts.switchProfileToFanPage()
-        }
 
         var fpPostsCounter = 1
         for (post in posts) {
@@ -66,7 +59,7 @@ class FpPostsProcessor () {
             if (facebookProperties.getProperty("workaround-enabled") == "true" &&
                 facebookSharedPosts !== null
             ) {
-                logger.info("\tlooking into shared posts using workaround")
+                logger.info("\tlooking into shared posts of fanpage posts using workaround")
                 facebookSharedPosts.openSharedPosts(post.id)
             }
             fpPostsCounter++

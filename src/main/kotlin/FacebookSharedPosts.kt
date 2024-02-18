@@ -257,10 +257,12 @@ class FacebookSharedPosts {
 //        scalePage(55)
 
                 if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS) {
+                    logger.info("\t\ttrying to click link to shared posts using ${it.name} strategy")
                     try {
                         clickElementIfOneInListExists(
                             listOf(
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[3]/div[2]/span/div",
                             ), true
                         )
                     } catch (exception: Exception) {
@@ -270,10 +272,11 @@ class FacebookSharedPosts {
                 }
 
                 // scroll down to bottom of page to load all posts (lazy loading)
-                var scrollTimeout = 100 // was 150 but produced too many temporary block of /shares endpoint
+                var scrollTimeout = 100
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
-                    scrollTimeout = 5
+                    scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
+//                scrollTimeout = 2 // DEBUG remove
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
                 var currentNumberOfSegments: Int
@@ -410,7 +413,9 @@ class FacebookSharedPosts {
                         .replace("<a aria-label=\"Notifications", "")
                         .replace("<a aria-label=\"Messenger", "")
                         .replace("<a aria-label=\"Messenger", "")
-                        .replace("<a aria-label=\"Click to view attachment\"", "")
+                        .replace("<a aria-label=\"Click to view attachment", "")
+                        .replace("<a aria-label=\"Open reel in Reels Viewer", "")
+                        .replace("<a aria-label=\"See owner profile", "")
                         .substringAfter("<a aria-label=\"")
 
                     val totalPostNumber = pageSource.split("<a aria-label=\"").size

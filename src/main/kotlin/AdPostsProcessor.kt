@@ -9,8 +9,10 @@ class AdPostsProcessor {
     fun processAdPost(
         logger: KLogger,
         facebook: Facebook,
+        facebookProperties: FacebookProperties,
         facebook4jProperties: Facebook4jProperties,
-        facebookReplies: FacebookReplies
+        facebookReplies: FacebookReplies,
+        facebookSharedPosts: FacebookSharedPosts?
     ) {
         /************************
          * Ad Posts
@@ -47,6 +49,11 @@ class AdPostsProcessor {
 //            facebookSharedPosts !== null) {
 //            facebookSharedPosts.openSharedPosts(adPost)
 //        }
+                logger.info("\tlooking into shared posts of ad using workaround")
+                if (facebookProperties.getProperty("workaround-enabled") == "true") {
+                    facebookSharedPosts!!.openSharedPosts(adPostId)
+                }
+
                 adPostsCounter++
             }
         }
