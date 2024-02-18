@@ -281,6 +281,7 @@ class FacebookSharedPosts {
                 var chosenXpathElementFound: XpathElementFound = XpathElementFound(found = false)
 
                 if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS) {
+                    logger.info("\t\ttrying to find element top of modal in ${it.name} strategy")
                     try {
                         chosenXpathElementFound = clickElementIfOneInListExists(
                             listOf(
