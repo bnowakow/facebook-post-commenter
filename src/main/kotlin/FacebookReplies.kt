@@ -83,12 +83,12 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             if (randomizeUrls) {
                 reply.append(
                     listOf(
-                        "http://siepomaga.pl/raczka-kuby",
-                        "https://cleanuri.com/8w37mQ",
-                        "https://cleanuri.com/BGN7lp",
-                        "https://cleanuri.com/rP52Yl",
-                        "https://cleanuri.com/w9A129",
-                        "https://cleanuri.com/bNpJrr",
+                        "https://cleanuri.com/O7X2JQ",      // second round of shortened urls: 2024.02.27
+                        "https://cleanuri.com/l01gQd",
+                        "https://cleanuri.com/9XnOyP",
+                        "https://cleanuri.com/1WDXjv",
+                        "https://cleanuri.com/zZgpVw",
+                        "https://cleanuri.com/Q2nXzX",
                     ).random()
                 )
             } else {
@@ -104,12 +104,12 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
                 if (randomizeUrls) {
                     reply.append(
                         listOf(
-                            "https://www.siepomaga.pl/raczka-kuby/procent-podatku",
-                            "https://cleanuri.com/dA9zr6",
-                            "https://cleanuri.com/VYoWeL",
-                            "https://cleanuri.com/dA9zQY",
-                            "https://cleanuri.com/jzpvdA",
-                            "https://cleanuri.com/Q2N6jR",
+                            "https://cleanuri.com/RprBdZ",     // second round of shortened urls: 2024.02.27
+                            "https://cleanuri.com/BG6dB3",
+                            "https://cleanuri.com/njMeg2",
+                            "https://cleanuri.com/P2BRM7",
+                            "https://cleanuri.com/47erPD",
+                            "https://cleanuri.com/EM9jG1",
                         ).random()
                     )
                 } else {
