@@ -2,18 +2,17 @@ import com.restfb.Connection
 import com.restfb.FacebookClient
 import com.restfb.Parameter
 import facebook4j.*
+import facebook4j.internal.org.json.JSONObject
 import mu.KotlinLogging
+import java.net.URI
+import java.net.URLEncoder
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
-
-//import org.springframework.http.MediaType
-//import org.springframework.util.LinkedMultiValueMap
-//import org.springframework.util.MultiValueMap
-//import org.springframework.web.reactive.function.BodyInserters
-//import org.springframework.web.reactive.function.client.WebClient
-//import java.net.URI
-//import java.net.URLEncoder
-//import java.nio.charset.StandardCharsets
-
 
 class FacebookReplies(private val facebook: Facebook, private val restfbClient: FacebookClient) {
 
@@ -37,26 +36,31 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
         return false
     }
 
-    // debug public
-//    public fun shortenUrl(longUrl: String): String {
-//        var bodyValues: MultiValueMap<String, String> = LinkedMultiValueMap()
-//        bodyValues["url"] = URLEncoder.encode(longUrl, StandardCharsets.UTF_8)
-//
-//        val client = WebClient.create()
-//
-//        val result: String = client.post()
-//            .uri(URI("https://cleanuri.com/api/v1/shorten"))
-//            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-//            .accept(MediaType.APPLICATION_JSON)
-//            .body(BodyInserters.fromFormData(bodyValues))
-//            .retrieve()
-//            .bodyToMono(String::class.java)
-//            .block();
-//
-//        return ""
-//    }
-
     companion object {
+
+        private fun shortenUrl(longUrl: String): String {
+            val client: HttpClient = HttpClient.newHttpClient()
+
+            val postBody = HttpRequest.BodyPublishers.ofString("url=" + URLEncoder.encode(longUrl, StandardCharsets.UTF_8))
+
+            val request: HttpRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://cleanuri.com/api/v1/shorten"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(postBody)
+                .build()
+
+            val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+            return if (response.statusCode() == 200) {
+
+                JSONObject(response.body()).getString("result_url")
+            } else {
+                // TODO fail flow
+//                logger.error("couldn't shorten url: $longUrl")
+                longUrl
+            }
+        }
+
         fun randomizeThankYouReply(randomizeUrls: Boolean = true): String {
             val reply: StringBuilder = StringBuilder()
             reply.append(listOf("", "Bardzo Tobie", "Bardzo Ci").random())
@@ -82,14 +86,7 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             reply.append("Link do mojej zbiórki: ")
             if (randomizeUrls) {
                 reply.append(
-                    listOf(
-                        "https://cleanuri.com/O7X2JQ",      // second round of shortened urls: 2024.02.27
-                        "https://cleanuri.com/l01gQd",
-                        "https://cleanuri.com/9XnOyP",
-                        "https://cleanuri.com/1WDXjv",
-                        "https://cleanuri.com/zZgpVw",
-                        "https://cleanuri.com/Q2nXzX",
-                    ).random()
+                    shortenUrl("http://siepomaga.pl/raczka-kuby?" + Random().nextInt(0, 10000).toString())
                 )
             } else {
                 reply.append("http://siepomaga.pl/raczka-kuby")
@@ -103,14 +100,7 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
                 reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: ")
                 if (randomizeUrls) {
                     reply.append(
-                        listOf(
-                            "https://cleanuri.com/RprBdZ",     // second round of shortened urls: 2024.02.27
-                            "https://cleanuri.com/BG6dB3",
-                            "https://cleanuri.com/njMeg2",
-                            "https://cleanuri.com/P2BRM7",
-                            "https://cleanuri.com/47erPD",
-                            "https://cleanuri.com/EM9jG1",
-                        ).random()
+                        shortenUrl("https://www.siepomaga.pl/raczka-kuby/procent-podatku?" + Random().nextInt(0, 10000).toString())
                     )
                 } else {
                     reply.append("https://www.siepomaga.pl/raczka-kuby/procent-podatku")

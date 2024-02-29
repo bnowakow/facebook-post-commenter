@@ -23,9 +23,6 @@ fun main() {
         facebookSharedPosts.switchProfileToFanPage()
     }
 
-    //debug
-    //facebookReplies.shortenUrl("http://siepomaga.pl/raczka-kuby")
-
     // TODO automate inviting people liking page to join grou
     // TODO find notification with people sharing fanpage (orange flag icon in notification) and comment it
 
