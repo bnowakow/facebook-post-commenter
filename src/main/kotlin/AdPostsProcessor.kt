@@ -34,6 +34,11 @@ class AdPostsProcessor {
             logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
             for (adPostId in uniqueAdPostIds) {
+//                // TODO debug remove afterwards
+//                if (adPostsCounter != 6) {
+//                    adPostsCounter++
+//                    continue
+//                }
                 val post = facebook.getPost(adPostId)
                 logger.info("in ${adPostsCounter}/${uniqueAdPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
