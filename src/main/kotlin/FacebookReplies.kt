@@ -88,7 +88,8 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             reply.append("Link do mojej zbiórki: ")
             if (randomizeUrls) {
                 reply.append(
-                    shortenUrl("http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString())
+//                    shortenUrl("http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString())
+                    "http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString()
                 )
             } else {
                 reply.append("http://siepomaga.pl/raczka-kuby")
@@ -102,7 +103,8 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
                 reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: ")
                 if (randomizeUrls) {
                     reply.append(
-                        shortenUrl("https://www.siepomaga.pl/raczka-kuby/procent-podatku?" + Random().nextLong().toString())
+//                        shortenUrl("https://www.siepomaga.pl/raczka-kuby/procent-podatku?" + Random().nextLong().toString())
+                        "https://www.siepomaga.pl/raczka-kuby/procent-podatku?" + Random().nextLong().toString()
                     )
                 } else {
                     reply.append("https://www.siepomaga.pl/raczka-kuby/procent-podatku")
