@@ -5,15 +5,13 @@ import pl.bnowakowski.facebook_commenter.FacebookPost
 
 private const val emptyId = ""
 
-class AdPostsProcessor {
-    fun processAdPost(
-        logger: KLogger,
-        facebook: Facebook,
-        facebookProperties: FacebookProperties,
-        facebook4jProperties: Facebook4jProperties,
-        facebookReplies: FacebookReplies,
-        facebookSharedPosts: FacebookSharedPosts?
-    ) {
+class AdPostsProcessor (private val logger: KLogger,
+                        private val facebook: Facebook,
+                        private val facebookProperties: FacebookProperties,
+                        private val facebook4jProperties: Facebook4jProperties,
+                        private val facebookReplies: FacebookReplies,
+                        private val facebookSharedPosts: FacebookSharedPosts?) {
+    fun processAdPost() {
         /************************
          * Ad Posts
          ***********************/
@@ -27,7 +25,7 @@ class AdPostsProcessor {
             // TODO below might be stupid
             val uniqueAdPostIds =
                 this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().useLines { it.toList() }
-                    .map { longId -> getShortId(facebook, longId) }
+                    .map { longId -> getShortId(longId) }
                     .filter { shortId -> shortId != emptyId }
                     .toSet()
 
@@ -63,7 +61,7 @@ class AdPostsProcessor {
             }
         }
     }
-    private fun getShortId(facebook: Facebook, longId: String): String? =
+    private fun getShortId(longId: String): String? =
         try {
             facebook.getPost(longId).id
         } catch (e: FacebookException) {

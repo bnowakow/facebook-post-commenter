@@ -1,6 +1,7 @@
 import com.restfb.Connection
 import com.restfb.FacebookClient
 import com.restfb.Parameter
+import com.restfb.types.Comment
 import facebook4j.*
 import facebook4j.internal.org.json.JSONObject
 import mu.KotlinLogging
@@ -17,6 +18,7 @@ import kotlin.math.min
 class FacebookReplies(private val facebook: Facebook, private val restfbClient: FacebookClient) {
 
     var commentedPosts = 0
+    var commentsToBeReTried: MutableList<Comment> = ArrayList()
     private val logger = KotlinLogging.logger {}
 
     private fun isCommentWrittenByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
@@ -111,6 +113,8 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
         }
     }
 
+
+
     private fun checkIfAllCommentsContainAdminComment(comments: ArrayList<com.restfb.types.Comment>) {
         for ((i, comment) in comments.withIndex()) {
 
@@ -118,24 +122,49 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
             if (!isCommentWrittenByOneOfAdmins(comment)) {
                 if (!isCommentRepliedByOneOfAdmins(comment)) {
 
-                    facebook.likePost(comment.id)
-                    val replyMessage: String = randomizeThankYouReply()
-                    logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
-                    try {
-                        facebook.commentPost(comment.id, replyMessage)
-                        commentedPosts++
-                    } catch (e: Exception) {
-                        logger.error(e.message)
-                    }
-
-                    val numberOfSeconds: Long = (30..120).random().toLong()
-                    logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
-                    Thread.sleep(1000 * numberOfSeconds)
+                    replyToComment(comment)
                 }
-
             }
         }
     }
+
+    private fun replyToComment(comment: Comment): Boolean {
+        facebook.likePost(comment.id)
+        val replyMessage: String = randomizeThankYouReply()
+        logger.info("\t\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
+        try {
+            facebook.commentPost(comment.id, replyMessage)
+            commentedPosts++
+            if (commentsToBeReTried.contains(comment)) {
+                commentsToBeReTried.remove(comment)
+            }
+        } catch (e: Exception) {
+            logger.error(e.message)
+            if (!commentsToBeReTried.contains(comment)) {
+                commentsToBeReTried.add(comment)
+            }
+        }
+
+        val numberOfSeconds: Long = (30..120).random().toLong()
+        logger.info("\t\t\t\tsleeping for $numberOfSeconds seconds\n")
+        Thread.sleep(1000 * numberOfSeconds)
+        return !commentsToBeReTried.contains(comment)
+    }
+
+    public fun processRetries() {
+
+        val maximumNumberOfRetries = 10
+        logger.info("Will retry ${commentsToBeReTried.size} failed comments each maximum of $maximumNumberOfRetries times")
+        for ((i, comment) in commentsToBeReTried.withIndex()) {
+            for (tryNumber in 1..maximumNumberOfRetries) {
+                logger.debug("\tretry comment $i/${commentsToBeReTried.size} retry number $tryNumber/$maximumNumberOfRetries [${comment.message.substring(0, min(comment.message.length, 30))}]")
+                if (replyToComment(comment)) {
+                    break
+                }
+            }
+        }
+    }
+
     private fun fetchAllComments(postId: String): ArrayList<com.restfb.types.Comment> {
         var commentConnection: Connection<com.restfb.types.Comment> = restfbClient.fetchConnection(
             "$postId/comments", com.restfb.types.Comment::class.java,

@@ -3,9 +3,14 @@ import com.restfb.FacebookClient
 import mu.KLogger
 import kotlin.math.min
 
-class FpPostsProcessor () {
+class FpPostsProcessor (private val logger: KLogger,
+                        private val facebookProperties: FacebookProperties,
+                        private val facebook4jProperties: Facebook4jProperties,
+                        private val facebookReplies: FacebookReplies,
+                        private val restfbClient: FacebookClient,
+                        private val facebookSharedPosts: FacebookSharedPosts?) {
 
-    private fun fetchAllPostsFromFanpage(fanpageId: String, restfbClient: FacebookClient): ArrayList<com.restfb.types.Post> {
+    private fun fetchAllPostsFromFanpage(fanpageId: String): ArrayList<com.restfb.types.Post> {
         var postConnection: Connection<com.restfb.types.Post> = restfbClient.fetchConnection(
             "$fanpageId/feed", com.restfb.types.Post::class.java,
         )
@@ -25,19 +30,12 @@ class FpPostsProcessor () {
         return allPosts
     }
 
-    fun processFpPost(
-        logger: KLogger,
-        facebookProperties: FacebookProperties,
-        facebook4jProperties: Facebook4jProperties,
-        facebookReplies: FacebookReplies,
-        restfbClient: FacebookClient,
-        facebookSharedPosts: FacebookSharedPosts?
-    ) {
+    fun processFpPost() {
         /************************
          * Fanpage Posts
          ***********************/
 
-        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage("105161449087504", restfbClient)
+        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage("105161449087504")
         logger.info("will be processing ${posts.size} fan page posts:")
 
         var fpPostsCounter = 1
@@ -69,7 +67,9 @@ class FpPostsProcessor () {
             }
             fpPostsCounter++
         }
+    }
 
+    fun printCommentsSummary() {
         if (facebook4jProperties.getProperty("enabled") == "true") {
             logger.info("added comment to ${facebookReplies.commentedPosts} comments via API")
         }
@@ -77,6 +77,11 @@ class FpPostsProcessor () {
             facebookSharedPosts !== null
         ) {
             logger.info("added comment to ${facebookSharedPosts.commentedPosts} comments via shared posts workaround")
+        }
+        if ((facebook4jProperties.getProperty("enabled") == "true") || (facebookProperties.getProperty("workaround-enabled") == "true" &&
+                    facebookSharedPosts !== null)
+        ) {
+            logger.info("fail to add comment to ${facebookReplies.commentsToBeReTried.size} post/comments")
         }
     }
 }
