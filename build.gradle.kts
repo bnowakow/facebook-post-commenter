@@ -20,12 +20,12 @@ dependencies {
     implementation("com.restfb:restfb:2024.2.0")
     implementation("commons-io:commons-io:2.15.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.4.7")
-    implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.16.1")
-    implementation("org.seleniumhq.selenium:selenium-firefox-driver:4.16.1")
-    implementation("org.seleniumhq.selenium:selenium-safari-driver:4.16.1")
-    implementation("org.seleniumhq.selenium:selenium-java:4.16.1")
-    implementation("org.seleniumhq.selenium:selenium-support:4.16.1")
+    implementation("ch.qos.logback:logback-classic:1.5.3")
+    implementation("org.seleniumhq.selenium:selenium-chrome-driver:4.18.1")
+    implementation("org.seleniumhq.selenium:selenium-firefox-driver:4.18.1")
+    implementation("org.seleniumhq.selenium:selenium-safari-driver:4.18.1")
+    implementation("org.seleniumhq.selenium:selenium-java:4.18.1")
+    implementation("org.seleniumhq.selenium:selenium-support:4.18.1")
     testImplementation(kotlin("test"))
 }
 
