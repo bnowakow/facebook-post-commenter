@@ -10,7 +10,7 @@ class AdPostsProcessor (private val logger: KLogger,
                         private val facebookProperties: FacebookProperties,
                         private val facebook4jProperties: Facebook4jProperties,
                         private val facebookReplies: FacebookReplies,
-                        private val facebookSharedPosts: FacebookSharedPosts?) {
+                        public var facebookSharedPosts: FacebookSharedPosts?) {
     fun processAdPost() {
         /************************
          * Ad Posts
@@ -32,11 +32,13 @@ class AdPostsProcessor (private val logger: KLogger,
             logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
             for (adPostId in uniqueAdPostIds) {
-//                // TODO debug remove afterwards
-//                if (adPostsCounter != 6) {
-//                    adPostsCounter++
-//                    continue
-//                }
+                if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                    if (adPostsCounter != 6) {
+                        adPostsCounter++
+                        continue
+                    }
+                }
+
                 val post = facebook.getPost(adPostId)
                 logger.info("in ${adPostsCounter}/${uniqueAdPostIds.size} ad post [${FacebookPost.previewMessage(post)}...], ${post.id}")
 
@@ -61,7 +63,8 @@ class AdPostsProcessor (private val logger: KLogger,
             }
         }
     }
-    private fun getShortId(longId: String): String? =
+
+    fun getShortId(longId: String): String? =
         try {
             facebook.getPost(longId).id
         } catch (e: FacebookException) {

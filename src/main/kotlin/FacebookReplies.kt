@@ -15,14 +15,17 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.min
 
-class FacebookReplies(private val facebook: Facebook, private val restfbClient: FacebookClient) {
+class FacebookReplies(private val facebook: Facebook,
+                      private val restfbClient: FacebookClient,
+                      private val facebookProperties: FacebookProperties,
+                      private val facebook4jProperties: Facebook4jProperties) {
 
     var commentedPosts = 0
     var commentsToBeReTried: MutableList<Comment> = ArrayList()
     private val logger = KotlinLogging.logger {}
 
     private fun isCommentWrittenByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
-        return comment.from?.id == "105161449087504" // Kuba
+        return comment.from?.id == facebook4jProperties.getProperty("fanpageId") // Kuba
     }
 
     private fun isCommentRepliedByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
@@ -119,6 +122,11 @@ class FacebookReplies(private val facebook: Facebook, private val restfbClient: 
 
     private fun checkIfAllCommentsContainAdminComment(comments: ArrayList<com.restfb.types.Comment>) {
         for ((i, comment) in comments.withIndex()) {
+            if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                if (i > 10) {
+                    continue
+                }
+            }
 
             logger.debug("\t\t\thas comment $i/${comments.size} [${comment.message.substring(0, min(comment.message.length, 30))}]")
             if (!isCommentWrittenByOneOfAdmins(comment)) {

@@ -1,18 +1,23 @@
 import mu.KotlinLogging
+import org.apache.commons.io.FileUtils
 import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
+import org.openqa.selenium.interactions.Actions
 import java.io.File
-import org.apache.commons.io.FileUtils
+import java.io.FileOutputStream
+import java.io.OutputStream
 import kotlin.NoSuchElementException
 
 
-class FacebookSharedPosts {
+class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
+                           private val facebookProperties: FacebookProperties,
+                           private val facebook4jProperties: Facebook4jProperties) {
 
     private var driver: WebDriver
     private val js: JavascriptExecutor
-    private val facebookProperties: FacebookProperties = FacebookProperties()
+
     var commentedPosts = 0
 
     private val logger = KotlinLogging.logger {}
@@ -117,7 +122,7 @@ class FacebookSharedPosts {
     }
 
     fun inviteToLikeFanpagePeopleWhoInteractedWithPosts() {
-        driver["https://business.facebook.com/latest/home?asset_id=105161449087504&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
+        driver["https://business.facebook.com/latest/home?asset_id=${facebook4jProperties.getProperty("fanpageId")}&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
         Thread.sleep(6000)
         if (driver.pageSource.split("You've reached your limit").size > 1) {
             logger.info("Can't invite people who interacted with page because daily limit of invites was reached")
@@ -164,7 +169,7 @@ class FacebookSharedPosts {
     fun switchProfileToFanPage() {
         driver["https://www.facebook.com"]
         // TODO fix notification popup from chrome
-        Thread.sleep(1500)
+        Thread.sleep(10000)
         if (facebookProperties.getProperty("username").contains("kuba")) {
             // account icon
             logger.info("trying to click on account icon")
@@ -172,8 +177,6 @@ class FacebookSharedPosts {
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
             ))
-
-            Thread.sleep(1000)
             // switch profile to fan page
             logger.info("trying to click on switch profile to fan page")
             clickElementIfOneInListExists(listOf(
@@ -186,20 +189,20 @@ class FacebookSharedPosts {
             ))
         } else {
             // account icon
+            logger.info("trying to click on account icon")
             clickElementIfOneInListExists(listOf(
                 "/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[1]/span/div/div[1]",
-                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]"
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
             ))
-            Thread.sleep(500)
             // switch profile to fan page
             logger.info("trying to click on switch profile to fan page")
             clickElementIfOneInListExists(listOf(
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/div[2]/span/div/div[1]/div[1]/span/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/span[1]/div/div/div/div",
                 "/html/body/div[1]/div[1]/div[1]/div/div[2]/div[4]/div[2]/div/div[2]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[4]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/a/div[1]/div[3]/span/div",
             ))
         }
-        Thread.sleep(2000)
     }
 
     private fun canElementBeReachedAndPressTabOnIt(xpath: String): Boolean {
@@ -218,14 +221,25 @@ class FacebookSharedPosts {
 
         var xpath: String
         val iter: Iterator<String> = possibleXpaths.iterator()
+        var elementFoundOrClicked: Boolean
         while (iter.hasNext()) {
             xpath = iter.next()
-            if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
-                if (clickOnElement) {
+            elementFoundOrClicked = false
+            if (!clickOnElement) {
+                // if clickOnElement == false there's some type of elements that could be clicked but you can't press TAB on them
+                if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
+                    elementFoundOrClicked = true
+                }
+            } else {
+                try {
                     driver.findElement(By.xpath(xpath))
                         .click()
+                    elementFoundOrClicked = true
                     Thread.sleep(10000)
+                } catch (e: Exception) {
                 }
+            }
+            if (elementFoundOrClicked) {
                 return XpathElementFound(true, xpath)
             } else {
                 if (!iter.hasNext()) {
@@ -276,7 +290,9 @@ class FacebookSharedPosts {
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
                     scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
-//                scrollTimeout = 2 // DEBUG remove
+                if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                    scrollTimeout = 2
+                }
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
                 var currentNumberOfSegments: Int
@@ -391,9 +407,11 @@ class FacebookSharedPosts {
                         logger.info("\t\ttrying to press Tab on like in first post")
                         clickElementIfOneInListExists(
                             listOf(
-                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",            // like button
-                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",               // like button
-                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[3]/div",                   // share button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",        // like button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",           // like button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[3]/div",               // share button
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",                                                   // like button
+                                "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[2]/div",                                                      // share button
                             )
                         )
 
@@ -559,6 +577,68 @@ class FacebookSharedPosts {
                 }
             }
         }
+    }
+
+    public fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
+
+        // TODO debug remove
+        logger.info("DEBUG path:")
+        logger.info(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
+
+        // accessing facebook business pages requires account with 2fa
+
+        logger.info("will be checking for new ad post id's")
+        if (facebookProperties.getProperty("username").contains("kuba")) {
+            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpageId")}&mailbox_id=${facebook4jProperties.getProperty("fanpageId")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
+        } else {
+            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpageId")}&business_id=876903966691457&mailbox_id=${facebook4jProperties.getProperty("fanpageId")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
+        }
+        Thread.sleep(5000)
+
+        val totalNumberOfNotifications = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
+
+        for (i in 1..totalNumberOfNotifications) {
+            // since we're going from top inbox message and we're dismissing it afterwards next inbox message will be always on the top
+            clickElementIfOneInListExists(listOf("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div"))
+
+            // TODO hardcoded fanpage name
+            val postId =
+                driver.pageSource.substringAfter("href=\"https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/")
+                    .substringBefore("?")
+
+            val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpageId") + "_" + postId
+            val shortPostId : String? = adPostsProcessor.getShortId(postIdWithFanpagePrefix)
+
+            // check if post is fanpage post or ad post
+            if (!fanPagePostIds.contains(shortPostId)) {
+                // post is ad post, not fanpage post
+                // check if ad post is already in the list
+                // TODO always read from file on disk not in build
+                if (!this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().lines().toList()
+                        .contains(shortPostId)
+                ) {
+                    // ad post list doesn't contain post id
+                    val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
+                    val output: OutputStream = FileOutputStream(file, true)
+                    output.write((shortPostId + System.lineSeparator()).toByteArray())
+                    output.close()
+                }
+            }
+
+            // TODO click on done button on notification
+            // TODO check if after clicking done xpath i will change
+            val builder = Actions(driver)
+            try {
+//                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[$i]/div/div/div[2]/div[2]/div[2]/div[1]/a",
+                builder.moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[2]/a")))
+                builder.click(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[2]/a")))
+                builder.release()
+                builder.perform()
+            } catch (e: Exception) {
+                logger.error(e.toString())
+            }
+        }
+
     }
 
     private fun doesStringContainAnySubstringInList(postSource: String, substringList: List<String>): Boolean {

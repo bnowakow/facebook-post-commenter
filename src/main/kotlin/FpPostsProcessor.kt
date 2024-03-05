@@ -10,6 +10,8 @@ class FpPostsProcessor (private val logger: KLogger,
                         private val restfbClient: FacebookClient,
                         private val facebookSharedPosts: FacebookSharedPosts?) {
 
+    var postIds: MutableList<String> = ArrayList()
+
     private fun fetchAllPostsFromFanpage(fanpageId: String): ArrayList<com.restfb.types.Post> {
         var postConnection: Connection<com.restfb.types.Post> = restfbClient.fetchConnection(
             "$fanpageId/feed", com.restfb.types.Post::class.java,
@@ -35,17 +37,21 @@ class FpPostsProcessor (private val logger: KLogger,
          * Fanpage Posts
          ***********************/
 
-        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage("105161449087504")
+        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpageId"))
         logger.info("will be processing ${posts.size} fan page posts:")
 
         var fpPostsCounter = 1
         for (post in posts) {
-//            // TODO debug remove afterwards
-//            if (fpPostsCounter == 2 || fpPostsCounter > 3) {
-//                fpPostsCounter++
-//                continue
-//            }
+
+            if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                if (fpPostsCounter > 3) {
+                    fpPostsCounter++
+                    continue
+                }
+            }
             logger.info("in ${fpPostsCounter}/${posts.size} post [${post.message?.substring(0, min(post.message.length, 30))}...], ${post.id}")
+
+            postIds.add(post.id)
 
             // comments under posts via API
             // TODO this will fail with property absent in file
