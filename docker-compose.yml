@@ -4,4 +4,5 @@ services:
   facebook-post-commenter:
 #    build: .
     image: bnowakow/facebook-post-commenter:latest
-
+    volumes:
+        - ${PWD}/src/main/resources/adPosts.txt:/app/src/main/resources/adPosts.txt
