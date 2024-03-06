@@ -8,7 +8,7 @@ class FpPostsProcessor (private val logger: KLogger,
                         private val facebook4jProperties: Facebook4jProperties,
                         private val facebookReplies: FacebookReplies,
                         private val restfbClient: FacebookClient,
-                        private val facebookSharedPosts: FacebookSharedPosts?) {
+                        public var facebookSharedPosts: FacebookSharedPosts?) {
 
     var postIds: MutableList<String> = ArrayList()
 
@@ -37,13 +37,13 @@ class FpPostsProcessor (private val logger: KLogger,
          * Fanpage Posts
          ***********************/
 
-        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpageId"))
+        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpage.id"))
         logger.info("will be processing ${posts.size} fan page posts:")
 
         var fpPostsCounter = 1
         for (post in posts) {
 
-            if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+            if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                 if (fpPostsCounter > 3) {
                     fpPostsCounter++
                     continue
@@ -69,7 +69,7 @@ class FpPostsProcessor (private val logger: KLogger,
                 facebookSharedPosts !== null
             ) {
                 logger.info("\tlooking into shared posts of fanpage posts using workaround")
-                facebookSharedPosts.openSharedPosts(post.id)
+                facebookSharedPosts!!.openSharedPosts(post.id)
             }
             fpPostsCounter++
         }
@@ -82,7 +82,7 @@ class FpPostsProcessor (private val logger: KLogger,
         if (facebookProperties.getProperty("workaround-enabled") == "true" &&
             facebookSharedPosts !== null
         ) {
-            logger.info("added comment to ${facebookSharedPosts.commentedPosts} comments via shared posts workaround")
+            logger.info("added comment to ${facebookSharedPosts!!.commentedPosts} comments via shared posts workaround")
         }
         if ((facebook4jProperties.getProperty("enabled") == "true") || (facebookProperties.getProperty("workaround-enabled") == "true" &&
                     facebookSharedPosts !== null)

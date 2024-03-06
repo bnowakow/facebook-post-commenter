@@ -25,7 +25,7 @@ class FacebookReplies(private val facebook: Facebook,
     private val logger = KotlinLogging.logger {}
 
     private fun isCommentWrittenByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
-        return comment.from?.id == facebook4jProperties.getProperty("fanpageId") // Kuba
+        return comment.from?.id == facebook4jProperties.getProperty("fanpage.id") // Kuba
     }
 
     private fun isCommentRepliedByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
@@ -122,7 +122,7 @@ class FacebookReplies(private val facebook: Facebook,
 
     private fun checkIfAllCommentsContainAdminComment(comments: ArrayList<com.restfb.types.Comment>) {
         for ((i, comment) in comments.withIndex()) {
-            if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+            if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                 if (i > 10) {
                     continue
                 }

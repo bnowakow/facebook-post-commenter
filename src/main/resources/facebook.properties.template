@@ -2,4 +2,4 @@ workaround-enabled=false
 username=
 password=
 browser.headless=true
-debug-mode-enabled=false
+developer-mode-enabled=false

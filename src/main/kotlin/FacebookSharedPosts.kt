@@ -5,8 +5,10 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
 import org.openqa.selenium.interactions.Actions
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileReader
 import java.io.OutputStream
 import kotlin.NoSuchElementException
 
@@ -122,7 +124,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
     }
 
     fun inviteToLikeFanpagePeopleWhoInteractedWithPosts() {
-        driver["https://business.facebook.com/latest/home?asset_id=${facebook4jProperties.getProperty("fanpageId")}&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
+        driver["https://business.facebook.com/latest/home?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
         Thread.sleep(6000)
         if (driver.pageSource.split("You've reached your limit").size > 1) {
             logger.info("Can't invite people who interacted with page because daily limit of invites was reached")
@@ -290,7 +292,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
                     scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
-                if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
                 }
                 var previousScrollHeight: Long = -1
@@ -581,52 +583,51 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
 
     public fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
 
-        // TODO debug remove
-        logger.info("DEBUG path:")
-        logger.info(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
-
-        // accessing facebook business pages requires account with 2fa
-
         logger.info("will be checking for new ad post id's")
         if (facebookProperties.getProperty("username").contains("kuba")) {
-            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpageId")}&mailbox_id=${facebook4jProperties.getProperty("fanpageId")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
+            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&mailbox_id=${facebook4jProperties.getProperty("fanpage.id")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
         } else {
-            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpageId")}&business_id=876903966691457&mailbox_id=${facebook4jProperties.getProperty("fanpageId")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
+            // TODO hadcoded business_id
+            driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&business_id=876903966691457&mailbox_id=${facebook4jProperties.getProperty("fanpage.id")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
         }
         Thread.sleep(5000)
 
-        val totalNumberOfNotifications = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
-
-        for (i in 1..totalNumberOfNotifications) {
+        val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
+        val totalNumberOfComments = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
+        logger.info("\tthere're $totalNumberOfComments comments")
+        for (i in 1..totalNumberOfComments) {
+            logger.info("\ttrying to click on comment $i/$totalNumberOfComments")
             // since we're going from top inbox message and we're dismissing it afterwards next inbox message will be always on the top
             clickElementIfOneInListExists(listOf("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div"))
 
-            // TODO hardcoded fanpage name
             val postId =
-                driver.pageSource.substringAfter("href=\"https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/")
+                driver.pageSource.substringAfter("href=\"https://www.facebook.com/${facebook4jProperties.getProperty("fanpage.name")}/posts/")
                     .substringBefore("?")
 
-            val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpageId") + "_" + postId
+            val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpage.id") + "_" + postId
             val shortPostId : String? = adPostsProcessor.getShortId(postIdWithFanpagePrefix)
 
             // check if post is fanpage post or ad post
             if (!fanPagePostIds.contains(shortPostId)) {
-                // post is ad post, not fanpage post
+                // post is an ad post, not fanpage post
+                logger.info("\t\tpost is an ad post shortPostId=$shortPostId longPostId=$postId")
                 // check if ad post is already in the list
-                // TODO always read from file on disk not in build
-                if (!this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().lines().toList()
+                if (!BufferedReader(FileReader(file)).lines().toList()
                         .contains(shortPostId)
                 ) {
                     // ad post list doesn't contain post id
-                    val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
+                    logger.info("\t\tad post is not in our list, trying to add")
                     val output: OutputStream = FileOutputStream(file, true)
                     output.write((shortPostId + System.lineSeparator()).toByteArray())
                     output.close()
+                } else {
+                    logger.info("\t\tad post is already on our list")
                 }
+            } else {
+                logger.info("\t\tpost is fanpage post, moving on. shortPostId=$shortPostId longPostId=$postIdWithFanpagePrefix")
             }
 
-            // TODO click on done button on notification
-            // TODO check if after clicking done xpath i will change
+            logger.info("\t\ttrying to click on move to done")
             val builder = Actions(driver)
             try {
 //                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[$i]/div/div/div[2]/div[2]/div[2]/div[1]/a",

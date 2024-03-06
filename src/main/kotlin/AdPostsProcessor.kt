@@ -32,7 +32,7 @@ class AdPostsProcessor (private val logger: KLogger,
             logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
             for (adPostId in uniqueAdPostIds) {
-                if (facebookProperties.getProperty("debug-mode-enabled") == "true") {
+                if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     if (adPostsCounter != 6) {
                         adPostsCounter++
                         continue

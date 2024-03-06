@@ -3,4 +3,5 @@ debug=true
 oauth.appId=
 oauth.appSecret=
 oauth.accessToken=
-fanpageId=
+fanpage.id=
+fanpage.name=

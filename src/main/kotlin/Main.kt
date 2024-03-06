@@ -24,8 +24,10 @@ fun main() {
         facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
         facebookSharedPosts.switchProfileToFanPage()
     }
-    // TODO figure out why without below there is null pointer exception
+    // TODO figure out if we can use a single reference that would be updated for circilar reference above without workaround below
+    fpPostsProcessor.facebookSharedPosts = facebookSharedPosts
     adPostsProcessor.facebookSharedPosts = facebookSharedPosts
+
 
     // TODO automate inviting people liking page to join grou
     // TODO find notification with people sharing fanpage (orange flag icon in notification) and comment it
