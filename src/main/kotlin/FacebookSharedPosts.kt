@@ -294,6 +294,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 }
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
+                    logger.info("\t\tdeveloper-mode is enabled will only scroll maxium of $scrollTimeout times")
                 }
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
@@ -595,8 +596,11 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
         val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
         val totalNumberOfComments = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
         logger.info("\tthere're $totalNumberOfComments comments")
+        var fanPagePosts = 0
+        var adPostsAlreadyExisted = 0
+        var adPostsDidntExist = 0
         for (i in 1..totalNumberOfComments) {
-            logger.info("\ttrying to click on comment $i/$totalNumberOfComments")
+            logger.info("\t\ttrying to click on comment $i/$totalNumberOfComments")
             // since we're going from top inbox message and we're dismissing it afterwards next inbox message will be always on the top
             clickElementIfOneInListExists(listOf("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div"))
 
@@ -606,28 +610,33 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
 
             val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpage.id") + "_" + postId
             val shortPostId : String? = adPostsProcessor.getShortId(postIdWithFanpagePrefix)
+            val postText: String = driver.pageSource.replaceBeforeLast("role=\"heading\">","").replaceAfter("</","").replaceBefore(">","").replaceAfter("<","").replace("<","").replace(">","")
+            logger.info("\t\tgot post notification [$postText] shortPostId=$shortPostId longPostId=$postId")
 
             // check if post is fanpage post or ad post
             if (!fanPagePostIds.contains(shortPostId)) {
                 // post is an ad post, not fanpage post
-                logger.info("\t\tpost is an ad post shortPostId=$shortPostId longPostId=$postId")
+                logger.info("\t\t\tpost is an ad post")
                 // check if ad post is already in the list
                 if (!BufferedReader(FileReader(file)).lines().toList()
                         .contains(shortPostId)
                 ) {
+                    adPostsDidntExist++
                     // ad post list doesn't contain post id
-                    logger.info("\t\tad post is not in our list, trying to add")
+                    logger.info("\t\t\tad post is not in our list, trying to add")
                     val output: OutputStream = FileOutputStream(file, true)
                     output.write((shortPostId + System.lineSeparator()).toByteArray())
                     output.close()
                 } else {
-                    logger.info("\t\tad post is already on our list")
+                    adPostsAlreadyExisted++
+                    logger.info("\t\t\tad post is already on our list")
                 }
             } else {
-                logger.info("\t\tpost is fanpage post, moving on. shortPostId=$shortPostId longPostId=$postIdWithFanpagePrefix")
+                fanPagePosts++
+                logger.info("\t\t\tpost is fanpage post, moving on")
             }
 
-            logger.info("\t\ttrying to click on move to done")
+            logger.info("\t\t\ttrying to click on move to done")
             val builder = Actions(driver)
             try {
 //                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[$i]/div/div/div[2]/div[2]/div[2]/div[1]/a",
@@ -639,7 +648,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 logger.error(e.toString())
             }
         }
-
+        logger.info("got $fanPagePosts fan page posts, $adPostsAlreadyExisted ad posts that were already added, $adPostsDidntExist ad posts that were new")
     }
 
     private fun doesStringContainAnySubstringInList(postSource: String, substringList: List<String>): Boolean {

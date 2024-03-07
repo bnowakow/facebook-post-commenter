@@ -31,6 +31,9 @@ class AdPostsProcessor (private val logger: KLogger,
 
             logger.info("will be processing ${uniqueAdPostIds.size} ad posts:")
 
+            if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
+                logger.info("developer-mode is enabled will process subset of all ad posts")
+            }
             for (adPostId in uniqueAdPostIds) {
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     if (adPostsCounter != 6) {

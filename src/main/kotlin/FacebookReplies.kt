@@ -121,9 +121,13 @@ class FacebookReplies(private val facebook: Facebook,
 
 
     private fun checkIfAllCommentsContainAdminComment(comments: ArrayList<com.restfb.types.Comment>) {
+        val numberOfCommentsToBeChekedInDeveloperMode = 10
+        if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
+            logger.info("\t\t\tdeveloper-mode is enabled will process no more than $numberOfCommentsToBeChekedInDeveloperMode comments")
+        }
         for ((i, comment) in comments.withIndex()) {
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                if (i > 10) {
+                if (i > numberOfCommentsToBeChekedInDeveloperMode) {
                     continue
                 }
             }

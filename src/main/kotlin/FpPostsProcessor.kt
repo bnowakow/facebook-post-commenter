@@ -40,6 +40,9 @@ class FpPostsProcessor (private val logger: KLogger,
         val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpage.id"))
         logger.info("will be processing ${posts.size} fan page posts:")
 
+        if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
+            logger.info("developer-mode is enabled will process subset of all posts")
+        }
         var fpPostsCounter = 1
         for (post in posts) {
 
