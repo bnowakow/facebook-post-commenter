@@ -79,7 +79,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 break
             }
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
-            Thread.sleep(5)
+            Thread.sleep(500)  // was 5 but slowing down to not get banned
         }
     }
 
@@ -282,13 +282,13 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                             ), true
                         )
                     } catch (exception: Exception) {
-                        logger.error("\t\tcouldn't click link to shared posts using ${it.name} strategy")
+                        logger.info("\t\tcouldn't click link to shared posts using ${it.name} strategy")
                         return@forEach
                     }
                 }
 
                 // scroll down to bottom of page to load all posts (lazy loading)
-                var scrollTimeout = 100
+                var scrollTimeout = 5 // was 100 but produced too many temporary block of /shares endpoint
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
                     scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
@@ -314,7 +314,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                             ), false
                         )
                     } catch (exception: Exception) {
-                        logger.error("\t\tcouldn't scroll to load all posts using ${it.name} strategy")
+                        logger.info("\t\tcouldn't scroll to load all posts using ${it.name} strategy")
                         return@forEach
                     }
                 }
@@ -356,12 +356,12 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                     SharedPostStrategy.CLICK_ON_SHARED_POSTS -> for (scrollNumber in 1..scrollTimeout) {
                         driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]"))
                             .sendKeys(Keys.PAGE_UP)
-                        Thread.sleep(500)
+                        Thread.sleep(5000) // was 500 but slowing down to not get banned
                     }
 
                     SharedPostStrategy.USE_SHARED_ENDPOINT -> js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
                 }
-                Thread.sleep(500)
+                Thread.sleep(5000) // was 500 but slowing down to not get banned
 
                 var pageSource: String
                 val indexOfSharedPostsHeading = when (it) {
@@ -526,7 +526,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                                         for (letter in replyMessage.replace("\n", " ")) {
                                             driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                                 .sendKeys(letter.toString())
-                                            Thread.sleep(50)
+                                            Thread.sleep(500) // was 50 but slowing down to not get banned
                                         }
                                         Thread.sleep(500)
                                         driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
@@ -538,7 +538,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                                         for (letter in replyMessage.replace("\n", " ")) {
                                             driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                                 .sendKeys(letter.toString())
-                                            Thread.sleep(50)
+                                            Thread.sleep(500) // was 50 but slowing down to not get banned
                                         }
                                         Thread.sleep(500)
                                         driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
