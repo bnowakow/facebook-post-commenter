@@ -6,3 +6,9 @@ services:
     image: bnowakow/facebook-post-commenter:latest
     volumes:
         - ${PWD}/src/main/resources/adPosts.txt:/app/src/main/resources/adPosts.txt
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "tcp://kibana.localdomain.bnowakowski.pl:50000"
+        syslog-facility: daemon
+
