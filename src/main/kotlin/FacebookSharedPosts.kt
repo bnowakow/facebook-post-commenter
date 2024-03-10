@@ -319,7 +319,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                     }
                 }
                 for (scrollNumber in 1..scrollTimeout) {
-
+                    // TODO after every page_down check if there's modal about temporarily blocked feature and then switch to next strategy
                     when (it) {
                         SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
                             .sendKeys(Keys.PAGE_DOWN)
@@ -477,8 +477,9 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                                                 listOf(
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
-                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                 ), false
                                             )
 
