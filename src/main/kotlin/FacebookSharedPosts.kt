@@ -288,7 +288,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 }
 
                 // scroll down to bottom of page to load all posts (lazy loading)
-                var scrollTimeout = 5 // was 100 but produced too many temporary block of /shares endpoint
+                var scrollTimeout = 15 // was 100 but produced too many temporary block of /shares endpoint
                 if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
                     scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
@@ -319,7 +319,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                     }
                 }
                 for (scrollNumber in 1..scrollTimeout) {
-                    // TODO after every page_down check if there's modal about temporarily blocked feature and then switch to next strategy
+                    // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
                     when (it) {
                         SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
                             .sendKeys(Keys.PAGE_DOWN)
@@ -511,6 +511,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                                     }
 
                                 } catch (exception: Exception) {
+                                    // TODO add counter of failed comments, add some id's so they could be identified for debug later
                                     logger.error("\t\t\tcouldn't click on comment text box using ${it.name} strategy")
                                     // TODO repeat with below, move to function
                                     postNumber++
@@ -589,7 +590,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
         if (facebookProperties.getProperty("username").contains("kuba")) {
             driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&mailbox_id=${facebook4jProperties.getProperty("fanpage.id")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
         } else {
-            // TODO hadcoded business_id
+            // TODO hardcoded business_id
             driver["https://business.facebook.com/latest/inbox/facebook?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&business_id=876903966691457&mailbox_id=${facebook4jProperties.getProperty("fanpage.id")}&selected_item_id=355255717411408&thread_type=FB_AD_POST"]
         }
         Thread.sleep(5000)

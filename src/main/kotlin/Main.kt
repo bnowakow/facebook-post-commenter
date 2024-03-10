@@ -41,5 +41,6 @@ fun main() {
         facebookSharedPosts!!.checkIfNewAdPostHasBeenAdded(fpPostsProcessor.postIds)
     }
     fpPostsProcessor.printCommentsSummary()
+    // TODO exit selenium browser?
     exitProcess(0)
 }
