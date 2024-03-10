@@ -1,5 +1,6 @@
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
+import org.checkerframework.checker.units.qual.min
 import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
@@ -11,6 +12,7 @@ import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStream
 import kotlin.NoSuchElementException
+import kotlin.math.min
 
 
 class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
@@ -613,7 +615,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
             val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpage.id") + "_" + postId
             val shortPostId : String? = adPostsProcessor.getShortId(postIdWithFanpagePrefix)
             val postText: String = driver.pageSource.replaceBeforeLast("role=\"heading\">","").replaceAfter("</","").replaceBefore(">","").replaceAfter("<","").replace("<","").replace(">","")
-            logger.info("\t\tgot post notification [$postText] shortPostId=$shortPostId longPostId=$postId")
+            logger.info("\t\tgot post notification [${postText.substring(0, min(postText.length, 30))}...] shortPostId=$shortPostId longPostId=$postId")
 
             // check if post is fanpage post or ad post
             if (!fanPagePostIds.contains(shortPostId)) {
