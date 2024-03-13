@@ -47,7 +47,7 @@ class FpPostsProcessor (private val logger: KLogger,
         for (post in posts) {
 
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                if (fpPostsCounter > 3) {
+                if (fpPostsCounter > 4) {
                     fpPostsCounter++
                     continue
                 }
@@ -72,7 +72,7 @@ class FpPostsProcessor (private val logger: KLogger,
                 facebookSharedPosts !== null
             ) {
                 logger.info("\tlooking into shared posts of fanpage posts using workaround")
-                facebookSharedPosts!!.openSharedPosts(post.id)
+                facebookSharedPosts!!.openSharedPosts(post)
             }
             fpPostsCounter++
         }

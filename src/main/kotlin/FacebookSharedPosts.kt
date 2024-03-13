@@ -1,6 +1,7 @@
+import facebook4j.Facebook
+import facebook4j.Post
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
-import org.checkerframework.checker.units.qual.min
 import org.openqa.selenium.*
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
@@ -15,9 +16,11 @@ import kotlin.NoSuchElementException
 import kotlin.math.min
 
 
-class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
-                           private val facebookProperties: FacebookProperties,
-                           private val facebook4jProperties: Facebook4jProperties) {
+class FacebookSharedPosts (
+    private val facebook: Facebook,
+    private val adPostsProcessor: AdPostsProcessor,
+    private val facebookProperties: FacebookProperties,
+    private val facebook4jProperties: Facebook4jProperties) {
 
     private var driver: WebDriver
     private val js: JavascriptExecutor
@@ -259,12 +262,17 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
         CLICK_ON_SHARED_POSTS, USE_SHARED_ENDPOINT
     }
 
-    fun openSharedPosts(postId: String) {
+    // TODO stupid workaround until I figure out how to query for a single post using restFb
+    fun openSharedPosts(restFbPost: com.restfb.types.Post) {
+        val facebook4jPost: Post = facebook.getPost(restFbPost.id)
+        openSharedPosts(facebook4jPost)
+    }
+    fun openSharedPosts(post: Post) {
 
         run breaking@ {
             SharedPostStrategy.values().forEach {
 
-                val id = postId.substringAfter("_")
+                val id = post.id.substringAfter("_")
                 when (it) {
                     SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
                     SharedPostStrategy.USE_SHARED_ENDPOINT -> driver["https://www.facebook.com/shares/view?id=$id"]
@@ -281,6 +289,8 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                             listOf(
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[3]/div[2]/span/div",
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[3]/div[2]/span/div",
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
                             ), true
                         )
                     } catch (exception: Exception) {
@@ -322,6 +332,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                 }
                 for (scrollNumber in 1..scrollTimeout) {
                     // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
+                    // for /shares/ strategy this decetcs it: driver.pageSource.contains("You’re Temporarily Blocked")
                     when (it) {
                         SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
                             .sendKeys(Keys.PAGE_DOWN)
@@ -482,6 +493,7 @@ class FacebookSharedPosts (private val adPostsProcessor: AdPostsProcessor,
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                                                 ), false
                                             )
 

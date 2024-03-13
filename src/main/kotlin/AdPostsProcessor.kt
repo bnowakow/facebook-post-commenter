@@ -1,3 +1,4 @@
+import com.restfb.FacebookClient
 import facebook4j.Facebook
 import facebook4j.FacebookException
 import mu.KLogger
@@ -10,6 +11,7 @@ class AdPostsProcessor (private val logger: KLogger,
                         private val facebookProperties: FacebookProperties,
                         private val facebook4jProperties: Facebook4jProperties,
                         private val facebookReplies: FacebookReplies,
+                        private val restfbClient: FacebookClient,
                         public var facebookSharedPosts: FacebookSharedPosts?) {
     fun processAdPost() {
         /************************
@@ -59,12 +61,29 @@ class AdPostsProcessor (private val logger: KLogger,
 //        }
                 logger.info("\tlooking into shared posts of ad using workaround")
                 if (facebookProperties.getProperty("workaround-enabled") == "true") {
-                    facebookSharedPosts!!.openSharedPosts(adPostId)
+                    facebookSharedPosts!!.openSharedPosts(getPost(adPostId))
                 }
 
                 adPostsCounter++
             }
         }
+    }
+
+    //  {
+// TODO throws, The connection JSON does not contain a data field, maybe it is no connection
+    /*
+    private fun getPost(postId: String) : com.restfb.types.Post {
+        var postConnection: Connection<Post> = restfbClient.fetchConnection(
+            "$postId", com.restfb.types.Post::class.java,
+            Parameter.with("fields", "id,created_time,message")
+        )
+        logger.info("break")
+//        return allPosts
+    }
+*/
+    fun getPost(id: String): facebook4j.Post {
+        return facebook.getPost(id)
+
     }
 
     fun getShortId(longId: String): String? =

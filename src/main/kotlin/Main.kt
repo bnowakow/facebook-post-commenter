@@ -16,10 +16,10 @@ fun main() {
     var facebookSharedPosts: FacebookSharedPosts? = null
 
     val fpPostsProcessor = FpPostsProcessor(logger, facebookProperties, facebook4jProperties, facebookReplies, restfbClient, facebookSharedPosts)
-    val adPostsProcessor = AdPostsProcessor(logger, facebook, facebookProperties, facebook4jProperties, facebookReplies, facebookSharedPosts)
+    val adPostsProcessor = AdPostsProcessor(logger, facebook, facebookProperties, facebook4jProperties, facebookReplies, restfbClient, facebookSharedPosts)
 
     if (facebookProperties.getProperty("workaround-enabled") == "true") {
-        facebookSharedPosts = FacebookSharedPosts(adPostsProcessor, facebookProperties, facebook4jProperties)
+        facebookSharedPosts = FacebookSharedPosts(facebook, adPostsProcessor, facebookProperties, facebook4jProperties)
         facebookSharedPosts.loginToFacebook()
         facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
         facebookSharedPosts.switchProfileToFanPage()
