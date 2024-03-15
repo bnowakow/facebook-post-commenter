@@ -311,6 +311,7 @@ class FacebookSharedPosts (
                 }
                 // scroll down to bottom of page to load all posts (lazy loading)
                 var scrollTimeout: Long = (maximumAmountOfScrolls *  postAgeCoefficient).toLong()
+                logger.info("\t\tpost is $numberOfDaysSincePost days old, will scroll maximum of $scrollTimeout times using ${it.name} strategy")
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
                     logger.info("\t\tdeveloper-mode is enabled will only scroll maxium of $scrollTimeout times")
