@@ -12,6 +12,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStream
+import java.lang.Long.max
 import java.util.concurrent.TimeUnit
 import kotlin.NoSuchElementException
 import kotlin.math.ln
@@ -304,13 +305,13 @@ class FacebookSharedPosts (
 
                 val numberOfDaysSincePost: Long = TimeUnit.DAYS.convert(java.util.Date().time - post.createdTime.time, TimeUnit.MILLISECONDS)
                 val postAgeCoefficient: Double = (1/((ln((numberOfDaysSincePost).toDouble())).coerceAtLeast(1.0)))
-                var maximumAmountOfScrolls: Long = 1
-                when (it) {
-                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> maximumAmountOfScrolls = 30 // was 100 but produced too many temporary block of /shares endpoint
-                    SharedPostStrategy.USE_SHARED_ENDPOINT -> maximumAmountOfScrolls = 5 // was 150 but produced too many temporary block of /shares endpoint
+                val minimumAmountOfScrolls: Long = 2
+                val maximumAmountOfScrolls = when (it) {
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> 30 // was 100 but produced too many temporary block of /shares endpoint
+                    SharedPostStrategy.USE_SHARED_ENDPOINT -> 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
                 // scroll down to bottom of page to load all posts (lazy loading)
-                var scrollTimeout: Long = (maximumAmountOfScrolls *  postAgeCoefficient).toLong()
+                var scrollTimeout: Long = max((maximumAmountOfScrolls *  postAgeCoefficient).toLong(), minimumAmountOfScrolls)
                 logger.info("\t\tpost is $numberOfDaysSincePost days old, will scroll maximum of $scrollTimeout times using ${it.name} strategy")
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
