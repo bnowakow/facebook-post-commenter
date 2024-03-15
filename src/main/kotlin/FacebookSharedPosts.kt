@@ -12,7 +12,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.OutputStream
+import java.util.concurrent.TimeUnit
 import kotlin.NoSuchElementException
+import kotlin.math.ln
 import kotlin.math.min
 
 
@@ -299,11 +301,16 @@ class FacebookSharedPosts (
                     }
                 }
 
-                // scroll down to bottom of page to load all posts (lazy loading)
-                var scrollTimeout = 15 // was 100 but produced too many temporary block of /shares endpoint
-                if (it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
-                    scrollTimeout = 5 // was 150 but produced too many temporary block of /shares endpoint
+
+                val numberOfDaysSincePost: Long = TimeUnit.DAYS.convert(java.util.Date().time - post.createdTime.time, TimeUnit.MILLISECONDS)
+                val postAgeCoefficient: Double = (1/((ln((numberOfDaysSincePost).toDouble())).coerceAtLeast(1.0)))
+                var maximumAmountOfScrolls: Long = 1
+                when (it) {
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> maximumAmountOfScrolls = 30 // was 100 but produced too many temporary block of /shares endpoint
+                    SharedPostStrategy.USE_SHARED_ENDPOINT -> maximumAmountOfScrolls = 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
+                // scroll down to bottom of page to load all posts (lazy loading)
+                var scrollTimeout: Long = (maximumAmountOfScrolls *  postAgeCoefficient).toLong()
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
                     logger.info("\t\tdeveloper-mode is enabled will only scroll maxium of $scrollTimeout times")
@@ -358,9 +365,9 @@ class FacebookSharedPosts (
                         previousNumberOfSegments = currentNumberOfSegments
                     }
                     previousScrollHeight = currentScrollHeight
-                    if (scrollNumber % 50 == 0) {
+                    if (scrollNumber % 20 == 0L) {
                         // should be debugged but can't set netty to info then
-                        logger.info("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries using ${it.name} strategy")
+                        logger.debug("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries using ${it.name} strategy")
                     }
                 }
 
