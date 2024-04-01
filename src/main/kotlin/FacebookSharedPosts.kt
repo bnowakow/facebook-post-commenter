@@ -619,7 +619,24 @@ class FacebookSharedPosts (
         driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
         Thread.sleep(5000)
 
-        // TODO switch from "most relevant" to "all comments"
+        logger.info("\t\ttrying to click Most relevant")
+        try {
+            clickElementIfOneInListExists(
+                listOf(
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[2]/div/div",
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[2]/div/div",
+                ), true
+            )
+            logger.info("\t\ttrying to click and switch to All comments")
+            clickElementIfOneInListExists(
+                listOf(
+                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div/div[3]",
+                ), true
+            )
+            Thread.sleep(5000)
+        } catch (e: Exception) {
+            logger.info("\t\tdidn't find switch between Most relevant and All coments: $e")
+        }
 
         // TODO if below can be reused with function above
         val numberOfDaysSincePost: Long = TimeUnit.DAYS.convert(java.util.Date().time - post.createdTime.time, TimeUnit.MILLISECONDS)
@@ -638,35 +655,11 @@ class FacebookSharedPosts (
         var currentNumberOfSegments: Int
         var numberOfConfirmations: Long = 0
 
-        /*
-        var chosenXpathElementFound: XpathElementFound = XpathElementFound(found = false)
-        if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS) {
-            logger.info("\t\ttrying to find element top of modal in ${it.name} strategy")
-            try {
-                chosenXpathElementFound = clickElementIfOneInListExists(
-                    listOf(
-                        "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]",
-                        "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]",
-                        "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[1]/div",
-                        "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
-                    ), false
-                )
-            } catch (exception: Exception) {
-                logger.info("\t\tcouldn't scroll to load all posts using ${it.name} strategy")
-                return@forEach
-            }
-        }*/
         for (scrollNumber in 1..scrollTimeout) {
             // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
             // for /shares/ strategy this decetcs it: driver.pageSource.contains("You’re Temporarily Blocked")
             driver.findElement(By.cssSelector("body"))
                 .sendKeys(Keys.PAGE_DOWN)
-
-            /*
-            driver.findElement(By.xpath(chosenXpathElementFound.xpath))
-                .sendKeys(Keys.PAGE_DOWN)
-             */
-
 
             Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
             // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
@@ -795,8 +788,6 @@ class FacebookSharedPosts (
             postNumber++
             pageSource = pageSource.substringAfter("aria-label=\"Comment by ")
         }
-
-        logger.info("breakpoint")
     }
 
 
