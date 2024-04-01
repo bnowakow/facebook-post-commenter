@@ -19,8 +19,6 @@ class AdPostsProcessor (private val logger: KLogger,
          ***********************/
 
         var adPostsCounter = 1
-        // TODO figure out can we get id's of ad posts from API
-        // For now manually taken from https://business.facebook.com/latest/inbox/facebook?asset_id=105161449087504&mailbox_id=105161449087504
 
         if (facebook4jProperties.getProperty("enabled") == "true") {
 
@@ -38,7 +36,7 @@ class AdPostsProcessor (private val logger: KLogger,
             }
             for (adPostId in uniqueAdPostIds) {
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                    if (adPostsCounter != 6) {
+                    if (adPostsCounter != 37) {
                         adPostsCounter++
                         continue
                     }
@@ -50,18 +48,19 @@ class AdPostsProcessor (private val logger: KLogger,
                 // comments under ad posts via API
 
                 logger.info("\tlooking into comments under post")
-                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(adPostId!!)
+                if (facebook4jProperties.getProperty("api-commenting-enabled") == "true") {
+                    facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(adPostId!!)
+                }
 
 
                 // shared ad posts using workaround
-                // TODO check how to get shared posts of ads
-//        if (facebookProperties.getProperty("workaround-enabled") == "true" &&
-//            facebookSharedPosts !== null) {
-//            facebookSharedPosts.openSharedPosts(adPost)
-//        }
+                // TODO check how to get shared posts of ads via api
                 logger.info("\tlooking into shared posts of ad using workaround")
                 if (facebookProperties.getProperty("workaround-enabled") == "true") {
-                    facebookSharedPosts!!.openSharedPosts(getPost(adPostId))
+                    if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
+                        facebookSharedPosts!!.openPostComments(getPost(adPostId!!))
+                    }
+                    facebookSharedPosts!!.openSharedPosts(getPost(adPostId!!))
                 }
 
                 adPostsCounter++

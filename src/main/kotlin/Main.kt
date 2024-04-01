@@ -22,14 +22,16 @@ fun main() {
         facebookSharedPosts = FacebookSharedPosts(facebook, adPostsProcessor, facebookProperties, facebook4jProperties)
         facebookSharedPosts.loginToFacebook()
         facebookSharedPosts.inviteToLikeFanpagePeopleWhoInteractedWithPosts()
-        facebookSharedPosts.switchProfileToFanPage()
+        if (facebookProperties.getProperty("comment-as-fanpage") == "true") {
+            facebookSharedPosts.switchProfileToFanPage()
+        }
     }
-    // TODO figure out if we can use a single reference that would be updated for circilar reference above without workaround below
+    // TODO figure out if we can use a single reference that would be updated for circular reference above without workaround below
     fpPostsProcessor.facebookSharedPosts = facebookSharedPosts
     adPostsProcessor.facebookSharedPosts = facebookSharedPosts
 
 
-    // TODO automate inviting people liking page to join grou
+    // TODO automate inviting people liking page to join group
     // TODO find notification with people sharing fanpage (orange flag icon in notification) and comment it
 
     facebook.extendTokenExpiration()

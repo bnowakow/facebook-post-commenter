@@ -24,13 +24,13 @@ class FacebookReplies(private val facebook: Facebook,
     var commentsToBeReTried: MutableList<Comment> = ArrayList()
     private val logger = KotlinLogging.logger {}
 
-    private fun isCommentWrittenByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
+    private fun isCommentWrittenByOneOfAdmins(comment: Comment): Boolean {
         return comment.from?.id == facebook4jProperties.getProperty("fanpage.id") // Kuba
     }
 
-    private fun isCommentRepliedByOneOfAdmins(comment: com.restfb.types.Comment): Boolean {
+    private fun isCommentRepliedByOneOfAdmins(comment: Comment): Boolean {
 
-        val commentsOfComment: ArrayList<com.restfb.types.Comment> = fetchAllComments(comment.id)
+        val commentsOfComment: ArrayList<Comment> = fetchAllComments(comment.id)
 
         for (commentOfComment in commentsOfComment) {
             logger.trace("\t\t\t\twhich is commented by ${commentOfComment.from?.name}: ${commentOfComment.message.replace("\n", "")}")

@@ -3,3 +3,4 @@ username=
 password=
 browser.headless=true
 developer-mode-enabled=false
+comment-as-fanpage=true

@@ -60,7 +60,9 @@ class FpPostsProcessor (private val logger: KLogger,
             // TODO this will fail with property absent in file
             if (facebook4jProperties.getProperty("enabled") == "true") {
                 logger.info("\tlooking into comments under post")
-                facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post.id)
+                if (facebook4jProperties.getProperty("api-commenting-enabled") == "true") {
+                    facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post.id)
+                }
             }
 
             // shared posts via API
@@ -72,6 +74,9 @@ class FpPostsProcessor (private val logger: KLogger,
                 facebookSharedPosts !== null
             ) {
                 logger.info("\tlooking into shared posts of fanpage posts using workaround")
+                if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
+                    facebookSharedPosts!!.openPostComments(post)
+                }
                 facebookSharedPosts!!.openSharedPosts(post)
             }
             fpPostsCounter++

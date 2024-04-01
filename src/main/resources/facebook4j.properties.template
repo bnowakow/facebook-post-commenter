@@ -5,3 +5,4 @@ oauth.appSecret=
 oauth.accessToken=
 fanpage.id=
 fanpage.name=
+api-commenting-enabled=true
