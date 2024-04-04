@@ -36,7 +36,8 @@ class AdPostsProcessor (private val logger: KLogger,
             }
             for (adPostId in uniqueAdPostIds) {
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                    if (adPostsCounter != 37) {
+                    if (adPostsCounter < uniqueAdPostIds.size - 1) {
+                        // check only 2 last ad posts in developer-mode
                         adPostsCounter++
                         continue
                     }

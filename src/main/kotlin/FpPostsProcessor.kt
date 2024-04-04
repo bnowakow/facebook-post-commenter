@@ -46,15 +46,15 @@ class FpPostsProcessor (private val logger: KLogger,
         var fpPostsCounter = 1
         for (post in posts) {
 
+            postIds.add(post.id)
+
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                if (fpPostsCounter > 4) {
+                if (fpPostsCounter > 3) {
                     fpPostsCounter++
                     continue
                 }
             }
             logger.info("in ${fpPostsCounter}/${posts.size} post [${post.message?.substring(0, min(post.message.length, 30))}...], ${post.id}")
-
-            postIds.add(post.id)
 
             // comments under posts via API
             // TODO this will fail with property absent in file

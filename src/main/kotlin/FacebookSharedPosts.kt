@@ -716,6 +716,8 @@ class FacebookSharedPosts (
                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
+                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div"
                     ), true
                 )
 
@@ -775,14 +777,14 @@ class FacebookSharedPosts (
                 // TODO at some point it focuses new post icon at the bottom and loops. maybe need to tab by some div
                 tabUntilGivenLabelIsFocussed(
                     "aria-label",
-                    "Delete, hide or report this"
+                    "Like"
                 )
             } else {
                 logger.debug("\t\t\tcomment contains admin response")
                 // TODO at some point it focuses new post icon at the bottom and loops. maybe need to tab by some div
                 tabUntilGivenLabelIsFocussed(
                     "aria-label",
-                    "Delete, hide or report this"
+                    "Like"
                 )
             }
             postNumber++
