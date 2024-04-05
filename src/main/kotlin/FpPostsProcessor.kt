@@ -50,6 +50,7 @@ class FpPostsProcessor (private val logger: KLogger,
 
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                 if (fpPostsCounter > 3) {
+//                if (fpPostsCounter != 2) { // only for 2nd post
                     fpPostsCounter++
                     continue
                 }
@@ -75,9 +76,15 @@ class FpPostsProcessor (private val logger: KLogger,
             ) {
                 logger.info("\tlooking into shared posts of fanpage posts using workaround")
                 if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
-                    facebookSharedPosts!!.openPostComments(post)
+                    facebookSharedPosts!!.openPost(
+                        post,
+                        arrayListOf(FacebookSharedPosts.SharedPostStrategy.COMMENTS_OF_POSTS)
+                    )
                 }
-                facebookSharedPosts!!.openSharedPosts(post)
+                facebookSharedPosts!!.openPost(
+                    post,
+                    arrayListOf(FacebookSharedPosts.SharedPostStrategy.CLICK_ON_SHARED_POSTS, FacebookSharedPosts.SharedPostStrategy.USE_SHARED_ENDPOINT)
+                )
             }
             fpPostsCounter++
         }

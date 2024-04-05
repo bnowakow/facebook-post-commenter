@@ -261,26 +261,26 @@ class FacebookSharedPosts (
         return XpathElementFound(false)
     }
 
-    enum class SharedPostStrategy {
-        CLICK_ON_SHARED_POSTS, USE_SHARED_ENDPOINT
+    public enum class SharedPostStrategy {
+        CLICK_ON_SHARED_POSTS, USE_SHARED_ENDPOINT, COMMENTS_OF_POSTS
     }
 
     // TODO stupid workaround until I figure out how to query for a single post using restFb
-    fun openSharedPosts(restFbPost: com.restfb.types.Post) {
+    fun openPost(restFbPost: com.restfb.types.Post, strategies: List<SharedPostStrategy>) {
         val facebook4jPost: Post = facebook.getPost(restFbPost.id)
-        openSharedPosts(facebook4jPost)
+        openPost(facebook4jPost, strategies)
     }
-    fun openSharedPosts(post: Post) {
+    fun openPost(post: Post, strategies: List<SharedPostStrategy>) {
 
         run breaking@ {
-            SharedPostStrategy.values().forEach {
+            strategies.forEach {
 
                 val id = post.id.substringAfter("_")
                 when (it) {
-                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
-                    SharedPostStrategy.USE_SHARED_ENDPOINT -> driver["https://www.facebook.com/shares/view?id=$id"]
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                        SharedPostStrategy.COMMENTS_OF_POSTS    -> driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
+                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver["https://www.facebook.com/shares/view?id=$id"]
                 }
-
                 Thread.sleep(5000)
 
 //        scalePage(55)
@@ -302,13 +302,34 @@ class FacebookSharedPosts (
                     }
                 }
 
+                if (it == SharedPostStrategy.COMMENTS_OF_POSTS) {
+                    logger.info("\t\ttrying to click Most relevant")
+                    try {
+                        clickElementIfOneInListExists(
+                            listOf(
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[2]/div/div",
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[2]/div/div",
+                            ), true
+                        )
+                        logger.info("\t\ttrying to click and switch to All comments")
+                        clickElementIfOneInListExists(
+                            listOf(
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div/div[3]",
+                            ), true
+                        )
+                        Thread.sleep(5000)
+                    } catch (e: Exception) {
+                        logger.info("\t\tdidn't find switch between Most relevant and All coments: $e")
+                    }
+                }
 
                 val numberOfDaysSincePost: Long = TimeUnit.DAYS.convert(java.util.Date().time - post.createdTime.time, TimeUnit.MILLISECONDS)
                 val postAgeCoefficient: Double = (1/((ln((numberOfDaysSincePost).toDouble())).coerceAtLeast(1.0)))
                 val minimumAmountOfScrolls: Long = 2
                 val maximumAmountOfScrolls = when (it) {
-                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> 30 // was 100 but produced too many temporary block of /shares endpoint
-                    SharedPostStrategy.USE_SHARED_ENDPOINT -> 5 // was 150 but produced too many temporary block of /shares endpoint
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                        SharedPostStrategy.COMMENTS_OF_POSTS    -> 30 // was 100 but produced too many temporary block of /shares endpoint
+                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> 5 // was 150 but produced too many temporary block of /shares endpoint
                 }
                 // scroll down to bottom of page to load all posts (lazy loading)
                 var scrollTimeout: Long = max((maximumAmountOfScrolls *  postAgeCoefficient).toLong(), minimumAmountOfScrolls)
@@ -343,10 +364,11 @@ class FacebookSharedPosts (
                     // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
                     // for /shares/ strategy this decetcs it: driver.pageSource.contains("You’re Temporarily Blocked")
                     when (it) {
-                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
+                        SharedPostStrategy.CLICK_ON_SHARED_POSTS    -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
                             .sendKeys(Keys.PAGE_DOWN)
 
-                        SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.findElement(By.cssSelector("body"))
+                        SharedPostStrategy.USE_SHARED_ENDPOINT,
+                            SharedPostStrategy.COMMENTS_OF_POSTS    -> driver.findElement(By.cssSelector("body"))
                             .sendKeys(Keys.PAGE_DOWN)
                     }
 
@@ -381,14 +403,16 @@ class FacebookSharedPosts (
                         Thread.sleep(5000) // was 500 but slowing down to not get banned
                     }
 
-                    SharedPostStrategy.USE_SHARED_ENDPOINT -> js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
+                    SharedPostStrategy.USE_SHARED_ENDPOINT,
+                        SharedPostStrategy.COMMENTS_OF_POSTS    -> js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
                 }
                 Thread.sleep(5000) // was 500 but slowing down to not get banned
 
                 var pageSource: String
                 val indexOfSharedPostsHeading = when (it) {
-                    SharedPostStrategy.CLICK_ON_SHARED_POSTS -> driver.pageSource.indexOf("People who shared this")
-                    SharedPostStrategy.USE_SHARED_ENDPOINT -> driver.pageSource.indexOf("Shared with Public</title>")
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS    -> driver.pageSource.indexOf("People who shared this")
+                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource.indexOf("Shared with Public</title>")
+                    SharedPostStrategy.COMMENTS_OF_POSTS        -> 0
                 }
                 if (indexOfSharedPostsHeading > -1) {
                     if (facebookProperties.getProperty("username").contains("kuba")) {
@@ -418,6 +442,8 @@ class FacebookSharedPosts (
                                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
                                     ), false
                                 )
+
+                                SharedPostStrategy.COMMENTS_OF_POSTS -> null
                             }
                         } catch (exception: Exception) {
                             logger.error("\t\tcouldn't press Tab on like in first post using ${it.name} strategy")
@@ -426,7 +452,12 @@ class FacebookSharedPosts (
 
 
                         // TODO check if locale of accounts are different and this causes below
-                        pageSource = driver.pageSource.substringAfter("People who shared this")
+                        pageSource = when(it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                                SharedPostStrategy.USE_SHARED_ENDPOINT  -> driver.pageSource.substringAfter("People who shared this")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource.substringAfter("aria-label=\"Comment by ")
+                        }
+
                     } else {
                         // send tab from like of first post should bring back focus to the top
                         logger.info("\t\ttrying to press Tab on like in first post")
@@ -435,50 +466,78 @@ class FacebookSharedPosts (
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",        // like button
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",           // like button
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[3]/div",               // share button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",                                     // like button
+                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[1]/div/div[2]/div/div[3]/div",                                        // share button
                                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",                                                   // like button
                                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[1]/div/div/div/div/div[4]/div/div/div[1]/div/div/div/div[2]/div",                                                      // share button
                             )
                         )
 
                         // TODO check if locale of accounts are different and this causes below - UK?
-                        pageSource = driver.pageSource.substringAfter("People Who Shared This")
+                        pageSource = when(it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                            SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource.substringAfter("People Who Shared This")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource.substringAfter("aria-label=\"Comment by ")
+                        }
                     }
 
-                    pageSource = pageSource
-                        .substringAfter("Enlarge")  // for video
-                        .replace("<a aria-label=\"May be an image of", "")
-                        .replace("<a aria-label=\"Home", "")
-                        .replace("<a aria-label=\"Watch", "")
-                        .replace("<a aria-label=\"Groups", "")
-                        .replace("<a aria-label=\"Gaming", "")
-                        .replace("<a aria-label=\"Events", "")
-                        .replace("<a aria-label=\"More", "")
-                        .replace("<a aria-label=\"Notifications", "")
-                        .replace("<a aria-label=\"Messenger", "")
-                        .replace("<a aria-label=\"Messenger", "")
-                        .replace("<a aria-label=\"Click to view attachment", "")
-                        .replace("<a aria-label=\"Open reel in Reels Viewer", "")
-                        .replace("<a aria-label=\"See owner profile", "")
-                        .substringAfter("<a aria-label=\"")
+                    if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS ||
+                        it == SharedPostStrategy.USE_SHARED_ENDPOINT) {
+                        pageSource = pageSource
+                            .substringAfter("Enlarge")  // for video
+                            .replace("<a aria-label=\"May be an image of", "")
+                            .replace("<a aria-label=\"Home", "")
+                            .replace("<a aria-label=\"Watch", "")
+                            .replace("<a aria-label=\"Groups", "")
+                            .replace("<a aria-label=\"Gaming", "")
+                            .replace("<a aria-label=\"Events", "")
+                            .replace("<a aria-label=\"More", "")
+                            .replace("<a aria-label=\"Notifications", "")
+                            .replace("<a aria-label=\"Messenger", "")
+                            .replace("<a aria-label=\"Messenger", "")
+                            .replace("<a aria-label=\"Click to view attachment", "")
+                            .replace("<a aria-label=\"Open reel in Reels Viewer", "")
+                            .replace("<a aria-label=\"See owner profile", "")
+                            .replace("<a aria-label=\"https://", "")
+                            .replace("<a aria-label=\"Boost post", "")
+                            .substringAfter("<a aria-label=\"")
+                    }
 
-                    val totalPostNumber = pageSource.split("<a aria-label=\"").size
+                    val totalPostNumber = when(it) {
+                        SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                            SharedPostStrategy.USE_SHARED_ENDPOINT  -> pageSource.split("<a aria-label=\"").size
+                        SharedPostStrategy.COMMENTS_OF_POSTS        -> pageSource.split("aria-label=\"Comment by ").size
+                    }
+
                     var postNumber = 1
                     while (true) {
                         // TODO fix edge case for last comment
-                        val nextPostStartPosition: Int = pageSource.indexOf("<a aria-label=\"")
+                        val nextPostStartPosition: Int = when(it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                                SharedPostStrategy.USE_SHARED_ENDPOINT  -> pageSource.indexOf("<a aria-label=\"")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> pageSource.indexOf("aria-label=\"Comment by ")
+                        }
                         if (nextPostStartPosition == -1) {
                             return@breaking
                         }
                         //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
-                        val postSource: String = pageSource.substringBefore("<a aria-label=\"")
-                        val postAuthor: String = postSource.substringBefore("\"")
+                        val postSource: String = when(it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                                SharedPostStrategy.USE_SHARED_ENDPOINT  -> pageSource.substringBefore("<a aria-label=\"")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> pageSource.substringBefore("aria-label=\"Comment by ")
+                        }
+                        val postAuthor: String = when(it) {
+                            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+                                SharedPostStrategy.USE_SHARED_ENDPOINT  -> postSource.substringBefore("\"")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> postSource.substringBefore(" ago\"")
+                        }
                         if (doesStringContainAnySubstringInList(
                                 postSource, listOf(
                                     "Write a comment",
                                     "Write a public comment",
                                     "Submit your first comment",
                                 )
-                            )
+                            ) || it == SharedPostStrategy.COMMENTS_OF_POSTS
                         ) {
                             // can be commented
                             logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
@@ -489,13 +548,24 @@ class FacebookSharedPosts (
                                 val replyMessage: String = FacebookReplies.randomizeThankYouReply(false)
                                 logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
 
+                                if (it == SharedPostStrategy.COMMENTS_OF_POSTS) {
+                                    logger.info("\t\t\ttrying to click Reply button to reveal text box")
+                                    clickElementIfOneInListExists(
+                                        listOf(
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div"
+                                        ), true
+                                    )
+                                }
+
                                 logger.info("\t\t\ttrying to press Tab comment text box")
                                 var commentTextFieldPossibleXpaths: XpathElementFound = XpathElementFound(found = false)
                                 try {
-
-                                    when (it) {
-                                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> commentTextFieldPossibleXpaths =
-                                            clickElementIfOneInListExists(
+                                    commentTextFieldPossibleXpaths = when (it) {
+                                        SharedPostStrategy.CLICK_ON_SHARED_POSTS -> clickElementIfOneInListExists(
                                                 listOf(
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
@@ -506,8 +576,7 @@ class FacebookSharedPosts (
                                                 ), false
                                             )
 
-                                        SharedPostStrategy.USE_SHARED_ENDPOINT -> commentTextFieldPossibleXpaths =
-                                            clickElementIfOneInListExists(
+                                        SharedPostStrategy.USE_SHARED_ENDPOINT -> clickElementIfOneInListExists(
                                                 listOf(
                                                     "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
@@ -531,6 +600,14 @@ class FacebookSharedPosts (
                                                     "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                                                 ), false
                                             )
+
+                                        SharedPostStrategy.COMMENTS_OF_POSTS -> clickElementIfOneInListExists(
+                                            listOf(
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
+                                            ), false
+                                        )
                                     }
 
                                 } catch (exception: Exception) {
@@ -538,7 +615,7 @@ class FacebookSharedPosts (
                                     logger.error("\t\t\tcouldn't click on comment text box using ${it.name} strategy")
                                     // TODO repeat with below, move to function
                                     postNumber++
-                                    pageSource = pageSource.substringAfter("<a aria-label=\"")
+                                    pageSource = removeTopPostSourceCode(it, pageSource)
                                     continue
                                 }
 
@@ -556,6 +633,8 @@ class FacebookSharedPosts (
                                         Thread.sleep(500)
                                         driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                             .sendKeys(Keys.RETURN)
+
+                                        // TODO check source for "Unable to post comment." because it's there when there is a ban
 
                                         commentedPosts++
                                     } else {
@@ -582,23 +661,19 @@ class FacebookSharedPosts (
                                 val numberOfSeconds: Long = (10..120).random().toLong()
                                 logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
                                 Thread.sleep(1000 * numberOfSeconds)
+
+                                tabToNextPost(it)
                             } else {
                                 logger.debug("\t\t\tpost contains admin response")
-                                tabUntilGivenLabelIsFocussed(
-                                    "aria-label",
-                                    "Send this to friends or post it on your profile."
-                                )
+                                tabToNextPost(it)
                             }
                         } else {
                             logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can't be commented")
-                            tabUntilGivenLabelIsFocussed(
-                                "aria-label",
-                                "Send this to friends or post it on your profile."
-                            )
+                            tabToNextPost(it)
                         }
 
                         postNumber++
-                        pageSource = pageSource.substringAfter("<a aria-label=\"")
+                        pageSource = removeTopPostSourceCode(it, pageSource)
                     }
                 } else {
                     logger.info("\t\tpost doesn't have any shared posts")
@@ -607,6 +682,29 @@ class FacebookSharedPosts (
         }
     }
 
+    private fun removeTopPostSourceCode(it: SharedPostStrategy, pageSource: String) = when (it) {
+        SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+        SharedPostStrategy.USE_SHARED_ENDPOINT -> pageSource.substringAfter("<a aria-label=\"")
+
+        SharedPostStrategy.COMMENTS_OF_POSTS -> pageSource.substringAfter("aria-label=\"Comment by ")
+    }
+
+    private fun tabToNextPost(it: SharedPostStrategy) {
+        when (it) {
+            SharedPostStrategy.CLICK_ON_SHARED_POSTS,
+            SharedPostStrategy.USE_SHARED_ENDPOINT -> tabUntilGivenLabelIsFocussed(
+                "aria-label",
+                "Send this to friends or post it on your profile."
+            )
+
+            SharedPostStrategy.COMMENTS_OF_POSTS -> tabUntilGivenLabelIsFocussed(
+                "aria-label",
+                "Like"
+            )
+        }
+    }
+
+    /*
     // TODO stupid workaround until I figure out how to query for a single post using restFb
     fun openPostComments(restFbPost: com.restfb.types.Post) {
         val facebook4jPost: Post = facebook.getPost(restFbPost.id)
@@ -791,7 +889,7 @@ class FacebookSharedPosts (
             pageSource = pageSource.substringAfter("aria-label=\"Comment by ")
         }
     }
-
+*/
 
     public fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
 

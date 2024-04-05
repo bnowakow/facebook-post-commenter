@@ -37,6 +37,7 @@ class AdPostsProcessor (private val logger: KLogger,
             for (adPostId in uniqueAdPostIds) {
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     if (adPostsCounter < uniqueAdPostIds.size - 1) {
+//                    if (adPostsCounter < uniqueAdPostIds.size + 1) { // never run
                         // check only 2 last ad posts in developer-mode
                         adPostsCounter++
                         continue
@@ -59,9 +60,15 @@ class AdPostsProcessor (private val logger: KLogger,
                 logger.info("\tlooking into shared posts of ad using workaround")
                 if (facebookProperties.getProperty("workaround-enabled") == "true") {
                     if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
-                        facebookSharedPosts!!.openPostComments(getPost(adPostId!!))
+                        facebookSharedPosts!!.openPost(
+                            getPost(adPostId!!),
+                            arrayListOf(FacebookSharedPosts.SharedPostStrategy.COMMENTS_OF_POSTS)
+                        )
                     }
-                    facebookSharedPosts!!.openSharedPosts(getPost(adPostId!!))
+                    facebookSharedPosts!!.openPost(
+                        getPost(adPostId!!),
+                        arrayListOf(FacebookSharedPosts.SharedPostStrategy.CLICK_ON_SHARED_POSTS, FacebookSharedPosts.SharedPostStrategy.USE_SHARED_ENDPOINT)
+                    )
                 }
 
                 adPostsCounter++
