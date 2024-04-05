@@ -49,22 +49,24 @@ class AdPostsProcessor (private val logger: KLogger,
 
                 // comments under ad posts via API
 
-                logger.info("\tlooking into comments under post")
                 if (facebook4jProperties.getProperty("api-commenting-enabled") == "true") {
+                    logger.info("\tlooking into comments under ad post with API")
                     facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(adPostId!!)
                 }
 
 
                 // shared ad posts using workaround
                 // TODO check how to get shared posts of ads via api
-                logger.info("\tlooking into shared posts of ad using workaround")
+
                 if (facebookProperties.getProperty("workaround-enabled") == "true") {
                     if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
+                        logger.info("\tlooking into comments under ad post using workaround")
                         facebookSharedPosts!!.openPost(
                             getPost(adPostId!!),
                             arrayListOf(FacebookSharedPosts.SharedPostStrategy.COMMENTS_OF_POSTS)
                         )
                     }
+                    logger.info("\tlooking into shared posts of ad using workaround")
                     facebookSharedPosts!!.openPost(
                         getPost(adPostId!!),
                         arrayListOf(FacebookSharedPosts.SharedPostStrategy.CLICK_ON_SHARED_POSTS, FacebookSharedPosts.SharedPostStrategy.USE_SHARED_ENDPOINT)

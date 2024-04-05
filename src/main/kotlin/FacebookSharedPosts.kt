@@ -500,6 +500,9 @@ class FacebookSharedPosts (
                             .replace("<a aria-label=\"See owner profile", "")
                             .replace("<a aria-label=\"https://", "")
                             .replace("<a aria-label=\"Boost post", "")
+                            .replace("<a aria-label=\"Video", "")
+                            .replace("<a aria-label=\"See all in Messenger", "")
+                            .replace("<a aria-label=\"New Message", "")
                             .substringAfter("<a aria-label=\"")
                     }
 
@@ -540,7 +543,7 @@ class FacebookSharedPosts (
                             ) || it == SharedPostStrategy.COMMENTS_OF_POSTS
                         ) {
                             // can be commented
-                            logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can be commented")
+                            logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can be commented")
                             val adminUsernamePosition = postSource.indexOf("Dobrowolski-Nowakowski")
                             if (adminUsernamePosition == -1) {
                                 // no comment from admin of fan page
@@ -668,7 +671,7 @@ class FacebookSharedPosts (
                                 tabToNextPost(it)
                             }
                         } else {
-                            logger.debug("\t\tshared post $postNumber/$totalPostNumber written by $postAuthor can't be commented")
+                            logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can't be commented")
                             tabToNextPost(it)
                         }
 
@@ -703,193 +706,6 @@ class FacebookSharedPosts (
             )
         }
     }
-
-    /*
-    // TODO stupid workaround until I figure out how to query for a single post using restFb
-    fun openPostComments(restFbPost: com.restfb.types.Post) {
-        val facebook4jPost: Post = facebook.getPost(restFbPost.id)
-        openPostComments(facebook4jPost)
-    }
-
-    fun openPostComments(post: Post) {
-
-        val id = post.id.substringAfter("_")
-        driver["https://www.facebook.com/Kuba.Dobrowolski.Nowakowski/posts/$id"]
-        Thread.sleep(5000)
-
-        logger.info("\t\ttrying to click Most relevant")
-        try {
-            clickElementIfOneInListExists(
-                listOf(
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[2]/div/div",
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[2]/div/div",
-                ), true
-            )
-            logger.info("\t\ttrying to click and switch to All comments")
-            clickElementIfOneInListExists(
-                listOf(
-                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div/div[3]",
-                ), true
-            )
-            Thread.sleep(5000)
-        } catch (e: Exception) {
-            logger.info("\t\tdidn't find switch between Most relevant and All coments: $e")
-        }
-
-        // TODO if below can be reused with function above
-        val numberOfDaysSincePost: Long = TimeUnit.DAYS.convert(java.util.Date().time - post.createdTime.time, TimeUnit.MILLISECONDS)
-        val postAgeCoefficient: Double = (1/((ln((numberOfDaysSincePost).toDouble())).coerceAtLeast(1.0)))
-        val minimumAmountOfScrolls: Long = 2
-        val maximumAmountOfScrolls = 30 // was 100 but produced too many temporary block of /shares endpoint
-        // scroll down to bottom of page to load all posts (lazy loading)
-        var scrollTimeout: Long = max((maximumAmountOfScrolls *  postAgeCoefficient).toLong(), minimumAmountOfScrolls)
-        logger.info("\t\tpost is $numberOfDaysSincePost days old, will scroll maximum of $scrollTimeout times")
-        if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-            scrollTimeout = 2
-            logger.info("\t\tdeveloper-mode is enabled will only scroll maxium of $scrollTimeout times")
-        }
-        var previousScrollHeight: Long = -1
-        var previousNumberOfSegments: Int = -1
-        var currentNumberOfSegments: Int
-        var numberOfConfirmations: Long = 0
-
-        for (scrollNumber in 1..scrollTimeout) {
-            // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
-            // for /shares/ strategy this decetcs it: driver.pageSource.contains("You’re Temporarily Blocked")
-            driver.findElement(By.cssSelector("body"))
-                .sendKeys(Keys.PAGE_DOWN)
-
-            Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
-            // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
-            val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
-            if (currentScrollHeight <= previousScrollHeight) {
-                currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
-                if (currentNumberOfSegments <= previousNumberOfSegments) {
-                    numberOfConfirmations++
-                    if (numberOfConfirmations > 2) {
-                        logger.info("\t\treached bottom of the page after ${scrollNumber}th time out of $scrollTimeout tries")
-                        break
-                    }
-                } else {
-                    numberOfConfirmations = 0
-                }
-                previousNumberOfSegments = currentNumberOfSegments
-            }
-            previousScrollHeight = currentScrollHeight
-            if (scrollNumber % 20 == 0L) {
-                // should be debugged but can't set netty to info then
-                logger.debug("\t\tscrolling for ${scrollNumber}th time out of $scrollTimeout tries")
-            }
-        }
-
-        js.executeScript("window.scrollTo(0, -document.body.scrollHeight)")
-        Thread.sleep(5000) // was 500 but slowing down to not get banned
-        //TODO end of if below can be reused with function above
-
-        //driver.pageSource.substringAfter("shares</span>")
-        var pageSource = driver.pageSource.substringAfter("aria-label=\"Comment by ")
-
-        val totalPostNumber = pageSource.split("aria-label=\"Comment by ").size
-        var postNumber = 1
-        while (true) {
-            // TODO fix edge case for last comment
-            val nextPostStartPosition: Int = pageSource.indexOf("aria-label=\"Comment by ")
-            if (nextPostStartPosition == -1) {
-                return
-            }
-            val postSource: String = pageSource.substringBefore("aria-label=\"Comment by ")
-            val postAuthor: String = postSource.substringBefore(" ago\"")
-
-            logger.debug("\t\tcomment under post $postNumber/$totalPostNumber written by $postAuthor can be commented")
-            val adminUsernamePosition = postSource.indexOf("Dobrowolski-Nowakowski")
-            if (adminUsernamePosition == -1) {
-                // no comment from admin of fan page
-                logger.debug("\t\t\tcomment doesn't contain admin response")
-                val replyMessage: String = FacebookReplies.randomizeThankYouReply(false)
-                logger.info("\t\t\ttrying replying with '${replyMessage.replace("\n", "")}'")
-
-                logger.info("\t\t\ttrying to click Reply button to reveal text box")
-                clickElementIfOneInListExists(
-                    listOf(
-                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
-                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
-                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
-                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
-                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div"
-                    ), true
-                )
-
-                logger.info("\t\t\ttrying to press Tab comment text box")
-                var commentTextFieldPossibleXpaths: XpathElementFound = XpathElementFound(found = false)
-                commentTextFieldPossibleXpaths = clickElementIfOneInListExists(
-                        listOf(
-                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
-                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
-                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
-                        ), false
-                    )
-
-                try {
-                    if (facebookProperties.getProperty("username").contains("kuba")) {
-                        // chrome
-//                              driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$commentNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]"))
-//                                    .sendKeys(replyMessage.replace("\n", Keys.chord(Keys.SHIFT, Keys.ENTER)))
-                        // firefox
-                        for (letter in replyMessage.replace("\n", " ")) {
-                            driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                .sendKeys(letter.toString())
-                            Thread.sleep(500) // was 50 but slowing down to not get banned
-                        }
-                        Thread.sleep(500)
-                        driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                            .sendKeys(Keys.RETURN)
-
-                        // TODO check source for "Unable to post comment." because it's there when there is a ban
-
-                        commentedPosts++
-                    } else {
-                        // firefox
-                        for (letter in replyMessage.replace("\n", " ")) {
-                            driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                                .sendKeys(letter.toString())
-                            Thread.sleep(500) // was 50 but slowing down to not get banned
-                        }
-                        Thread.sleep(500)
-                        driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
-                            .sendKeys(Keys.RETURN)
-
-                        commentedPosts++
-                    }
-                } catch (e: NoSuchElementException) {
-                    logger.error(e.message)
-                    logger.error("NoSuchElementException exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
-                } catch (e: Exception) {
-                    logger.error(e.message)
-                    logger.error("Exception exception has been thrown during processing of $id post on $postNumber post written by $postAuthor")
-                }
-
-                val numberOfSeconds: Long = (10..120).random().toLong()
-                logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
-                Thread.sleep(1000 * numberOfSeconds)
-
-                // TODO at some point it focuses new post icon at the bottom and loops. maybe need to tab by some div
-                tabUntilGivenLabelIsFocussed(
-                    "aria-label",
-                    "Like"
-                )
-            } else {
-                logger.debug("\t\t\tcomment contains admin response")
-                // TODO at some point it focuses new post icon at the bottom and loops. maybe need to tab by some div
-                tabUntilGivenLabelIsFocussed(
-                    "aria-label",
-                    "Like"
-                )
-            }
-            postNumber++
-            pageSource = pageSource.substringAfter("aria-label=\"Comment by ")
-        }
-    }
-*/
 
     public fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
 

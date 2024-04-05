@@ -49,8 +49,9 @@ class FpPostsProcessor (private val logger: KLogger,
             postIds.add(post.id)
 
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                if (fpPostsCounter > 3) {
-//                if (fpPostsCounter != 2) { // only for 2nd post
+                if (fpPostsCounter > 4) {
+//                if (fpPostsCounter < 2 || fpPostsCounter > 3) { // only for 2nd and 3rd post
+//                if (fpPostsCounter != 4) {
                     fpPostsCounter++
                     continue
                 }
@@ -60,8 +61,8 @@ class FpPostsProcessor (private val logger: KLogger,
             // comments under posts via API
             // TODO this will fail with property absent in file
             if (facebook4jProperties.getProperty("enabled") == "true") {
-                logger.info("\tlooking into comments under post")
                 if (facebook4jProperties.getProperty("api-commenting-enabled") == "true") {
+                    logger.info("\tlooking into comments under fanpage post with API")
                     facebookReplies.checkIfAllCommentsUnderPostContainAdminComment(post.id)
                 }
             }
@@ -74,13 +75,14 @@ class FpPostsProcessor (private val logger: KLogger,
             if (facebookProperties.getProperty("workaround-enabled") == "true" &&
                 facebookSharedPosts !== null
             ) {
-                logger.info("\tlooking into shared posts of fanpage posts using workaround")
                 if (facebook4jProperties.getProperty("api-commenting-enabled") == "false") {
+                    logger.info("\tlooking into comments under fanpage post using workaround")
                     facebookSharedPosts!!.openPost(
                         post,
                         arrayListOf(FacebookSharedPosts.SharedPostStrategy.COMMENTS_OF_POSTS)
                     )
                 }
+                logger.info("\tlooking into shared posts of fanpage posts using workaround")
                 facebookSharedPosts!!.openPost(
                     post,
                     arrayListOf(FacebookSharedPosts.SharedPostStrategy.CLICK_ON_SHARED_POSTS, FacebookSharedPosts.SharedPostStrategy.USE_SHARED_ENDPOINT)
