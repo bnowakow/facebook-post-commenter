@@ -16,6 +16,7 @@ while true; do
     time timeout 10h docker compose up
     docker compose down
     date
-    sleep 3h
+    #sleep 3h
+    sleep 8h # for developer mode
 done
 
