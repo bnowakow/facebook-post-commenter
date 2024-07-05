@@ -150,6 +150,7 @@ class FacebookSharedPosts (
                             "/html/body/div[2]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
                             "/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
                             "/html/body/div[5]/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
+                            "/html/body/span/div/div[1]/div[1]/div/div/div/div/div[2]/div[1]/div[2]/div/div[2]/div[1]/div/div[$i]/label/div/input",
                     )).found) {
                         numberOfInvitedUsers++
                     }
@@ -162,7 +163,8 @@ class FacebookSharedPosts (
             if (numberOfInvitedUsers > 0) {
                 clickElementIfOneInListExists(listOf(
                     "/html/body/div[4]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div/span/div/div/div",
-                    "/html/body/div[5]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div"
+                    "/html/body/div[5]/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div",
+                    "/html/body/span/div/div[1]/div[1]/div/div/div/div/div[3]/div/div[2]/div",
                 ))
             }
         } catch (e: NoSuchElementException) {
@@ -727,7 +729,10 @@ class FacebookSharedPosts (
         for (i in 1..totalNumberOfComments) {
             logger.info("\t\ttrying to click on comment $i/$totalNumberOfComments")
             // since we're going from top inbox message and we're dismissing it afterwards next inbox message will be always on the top
-            clickElementIfOneInListExists(listOf("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div"))
+            clickElementIfOneInListExists(listOf(
+                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div",
+                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/span/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]"
+            ))
 
             val postId =
                 driver.pageSource.substringAfter("href=\"https://www.facebook.com/${facebook4jProperties.getProperty("fanpage.name")}/posts/")
@@ -765,10 +770,19 @@ class FacebookSharedPosts (
             val builder = Actions(driver)
             try {
 //                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[$i]/div/div/div[2]/div[2]/div[2]/div[1]/a",
-                builder.moveToElement(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[2]/a")))
-                builder.click(driver.findElement(By.xpath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[2]/a")))
-                builder.release()
-                builder.perform()
+                val moveToDoneXpathElementFound = clickElementIfOneInListExists(listOf(
+                    "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[2]/a",
+                    "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/span/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div/div[1]/div[2]/div[2]/div[2]/div[1]/a",
+                ), false, true)
+                if (moveToDoneXpathElementFound.found) {
+                    driver.findElement(By.xpath("/html/body")).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
+                    driver.findElement(By.xpath("/html/body")).sendKeys(Keys.ENTER)
+                    // for some reason below stopped working so added workaround above
+//                    builder.moveToElement(driver.findElement(By.xpath(moveToDoneXpathElementFound.xpath)))
+//                    builder.click(driver.findElement(By.xpath(moveToDoneXpathElementFound.xpath)))
+//                    builder.release()
+//                    builder.perform()
+                }
             } catch (e: Exception) {
                 logger.error(e.toString())
             }
