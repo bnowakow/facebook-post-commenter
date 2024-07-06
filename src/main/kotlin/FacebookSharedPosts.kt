@@ -776,6 +776,7 @@ class FacebookSharedPosts (
                 ), false, true)
                 if (moveToDoneXpathElementFound.found) {
                     driver.findElement(By.xpath("/html/body")).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
+                    Thread.sleep(500)
                     driver.findElement(By.xpath("/html/body")).sendKeys(Keys.ENTER)
                     // for some reason below stopped working so added workaround above
 //                    builder.moveToElement(driver.findElement(By.xpath(moveToDoneXpathElementFound.xpath)))
