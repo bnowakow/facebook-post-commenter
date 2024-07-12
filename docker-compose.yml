@@ -9,6 +9,7 @@ services:
     logging:
       driver: syslog
       options:
-        syslog-address: "tcp://kibana.localdomain.bnowakowski.pl:50000"
+#        syslog-address: "tcp://kibana.localdomain.bnowakowski.pl:50000"
+        syslog-address: "tcp://logstash.rancher.localdomain.bnowakowski.pl:80"
         syslog-facility: daemon
 
