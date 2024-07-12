@@ -1,5 +1,5 @@
 # https://stackoverflow.com/a/50467205
-FROM gradle:jdk17 AS BUILDER
+FROM gradle:jdk21 AS builder
 
 ENV APP_HOME=/app
 WORKDIR $APP_HOME
@@ -9,7 +9,7 @@ RUN ./gradlew --console verbose --full-stacktrace shadowJar || return 0
 COPY . .
 RUN ./gradlew --console verbose --full-stacktrace shadowJar
 
-FROM debian:bookworm-20231120
+FROM debian:bookworm-20240701
 
 ENV ARTIFACT_NAME=shadow-1.0-SNAPSHOT-all.jar
 ENV APP_HOME=/app
@@ -23,11 +23,10 @@ RUN apt-get update -y  \
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get install -y tzdata
 
-RUN apt-get install -y openjdk-17-jdk
 
 # https://dev.to/sunim2022/run-your-selenium-tests-inside-docker-container-part-1-4b02
 # Install Firefox
-ARG FIREFOX_VERSION=120.0.1
+ARG FIREFOX_VERSION=128.0.0
 RUN echo "deb http://deb.debian.org/debian/ unstable main contrib non-free" >> /etc/apt/sources.list.d/debian.list
 RUN apt-get update -qqy \
   && apt-get -qqy --no-install-recommends install firefox
@@ -53,6 +52,11 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   && chmod 755 /opt/geckodriver-$GECKODRIVER_VERSION \
   && ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/bin/geckodriver
 
-COPY --from=BUILDER $APP_HOME/build/libs/$ARTIFACT_NAME .
-ENTRYPOINT java -jar $ARTIFACT_NAME
+# bookworm has only jdk-17, doing stupid thing of mixing different version of debian to get newer package
+RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" >> /etc/apt/sources.list.d/debian.list
+RUN apt-get update -qqy
+RUN apt-get install -y openjdk-21-jdk
+
+COPY --from=builder $APP_HOME/build/libs/$ARTIFACT_NAME .
+ENTRYPOINT ["java", "-jar $ARTIFACT_NAME"]
 
