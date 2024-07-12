@@ -58,5 +58,6 @@ RUN apt-get update -qqy
 RUN apt-get install -y openjdk-21-jdk
 
 COPY --from=builder $APP_HOME/build/libs/$ARTIFACT_NAME .
-ENTRYPOINT ["java", "-jar $ARTIFACT_NAME"]
-
+# TODO: JSONArgsRecommended: JSON arguments recommended for ENTRYPOINT to prevent unintended behavior related to OS signals
+# doesn't parse last variable ENTRYPOINT ["java", "-jar", $ARTIFACT_NAME]
+ENTRYPOINT java -jar $ARTIFACT_NAME
