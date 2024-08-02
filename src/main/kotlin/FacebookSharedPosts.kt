@@ -542,12 +542,14 @@ class FacebookSharedPosts (
                                     "Write a comment",
                                     "Write a public comment",
                                     "Submit your first comment",
+                                    "Comment as ",
                                 )
                             ) || it == SharedPostStrategy.COMMENTS_OF_POSTS
                         ) {
                             // can be commented
                             logger.debug("\t\tpost $postNumber/$totalPostNumber written by $postAuthor can be commented")
-                            val adminUsernamePosition = postSource.indexOf("Dobrowolski-Nowakowski")
+                            // TODO should be regex, now name and surname is hardcoded
+                            val adminUsernamePosition = postSource.replace("Comment as Kuba Dobrowolski-Nowakowski", "Comment as").indexOf("Dobrowolski-Nowakowski")
                             if (adminUsernamePosition == -1) {
                                 // no comment from admin of fan page
                                 logger.debug("\t\t\tpost doesn't contain admin response")
@@ -609,6 +611,7 @@ class FacebookSharedPosts (
 
                                         SharedPostStrategy.COMMENTS_OF_POSTS -> clickElementIfOneInListExists(
                                             listOf(
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
