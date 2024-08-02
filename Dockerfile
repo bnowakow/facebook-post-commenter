@@ -1,5 +1,5 @@
 # https://stackoverflow.com/a/50467205
-FROM gradle:jdk21 AS builder
+FROM gradle:jdk17 AS builder
 
 ENV APP_HOME=/app
 WORKDIR $APP_HOME
@@ -53,9 +53,11 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   && ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/bin/geckodriver
 
 # bookworm has only jdk-17, doing stupid thing of mixing different version of debian to get newer package
-RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" >> /etc/apt/sources.list.d/debian.list
-RUN apt-get update -qqy
-RUN apt-get install -y openjdk-21-jdk
+#RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" >> /etc/apt/sources.list.d/debian.list
+#RUN apt-get update -qqy
+#RUN apt-get install -y openjdk-21-jdk
+
+RUN apt-get install -y openjdk-17-jdk
 
 COPY --from=builder $APP_HOME/build/libs/$ARTIFACT_NAME .
 # TODO: JSONArgsRecommended: JSON arguments recommended for ENTRYPOINT to prevent unintended behavior related to OS signals
