@@ -188,6 +188,7 @@ class FacebookSharedPosts (
             clickElementIfOneInListExists(listOf(
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[3]/div[1]/span/div/div[1]",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
+                "/html/body/div[1]/div/div/div[1]/div/div[2]/div[5]/div[1]/span/div/div[1]",
             ))
             // switch profile to fan page
             logger.info("trying to click on switch profile to fan page")
@@ -198,6 +199,7 @@ class FacebookSharedPosts (
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div[3]/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/a/div[1]/div[3]/span/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/span/div/div/div/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/span/div/div/div/div",
+                "/html/body/div[1]/div/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/span/div/div/div/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div[5]/div[2]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div[1]/div/div/div[1]/div[1]/div/div/div[1]/div/div[2]/span/div/div[1]/div[1]/span/div",
             ))
         } else {
