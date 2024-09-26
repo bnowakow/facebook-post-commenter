@@ -49,9 +49,10 @@ class FpPostsProcessor (private val logger: KLogger,
             postIds.add(post.id)
 
             if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                if (fpPostsCounter > 4) {
+                if (fpPostsCounter > 3) {
 //                if (fpPostsCounter < 2 || fpPostsCounter > 4) { // only for posts from 2 to 4
 //                if (fpPostsCounter != 4) {
+//                if (true) { // no posts
                     fpPostsCounter++
                     continue
                 }
