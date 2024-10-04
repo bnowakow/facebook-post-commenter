@@ -22,6 +22,7 @@ class AdPostsProcessor (private val logger: KLogger,
 
         if (facebook4jProperties.getProperty("enabled") == "true") {
 
+            // TODO sort by ad date to process in developer-mode-enabled only latest ads
             // TODO below might be stupid
             val uniqueAdPostIds =
                 this::class.java.getResourceAsStream("adPosts.txt").bufferedReader().useLines { it.toList() }
