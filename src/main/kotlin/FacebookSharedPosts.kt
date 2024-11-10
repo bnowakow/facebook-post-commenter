@@ -29,6 +29,7 @@ class FacebookSharedPosts (
     private val js: JavascriptExecutor
 
     var commentedPosts = 0
+    var commentingTemporarilyBlocked = false
 
     private val logger = KotlinLogging.logger {}
 
@@ -118,7 +119,7 @@ class FacebookSharedPosts (
         logger.debug("trying to click on cookie consent form")
         try {
             driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             logger.info("exception while pressing RETURN on Tabbed button. Trying to click button By.className")
             driver.findElement(By.className("_42ft")).click()
         }
@@ -156,7 +157,7 @@ class FacebookSharedPosts (
                     )).found) {
                         numberOfInvitedUsers++
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // ignoring since rest of program can run
                     logger.error("couldn't select $i'th user on invite to fan page screen")
                 }
@@ -228,7 +229,7 @@ class FacebookSharedPosts (
             driver.findElement(By.xpath(xpath)).sendKeys(Keys.TAB)
     //            driver.findElement(By.xpath(xpath)).sendKeys(Keys.chord(Keys.SHIFT, Keys.TAB))
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -243,7 +244,7 @@ class FacebookSharedPosts (
             xpath = iter.next()
             elementFoundOrClicked = false
             if (!clickOnElement) {
-                // if clickOnElement == false there's some type of elements that could be clicked but you can't press TAB on them
+                // if clickOnElement == false there's some type of elements that could be clicked, but you can't press TAB on them
                 if (this.canElementBeReachedAndPressTabOnIt(xpath)) {
                     elementFoundOrClicked = true
                 }
@@ -253,7 +254,7 @@ class FacebookSharedPosts (
                         .click()
                     elementFoundOrClicked = true
                     Thread.sleep(10000)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
             }
             if (elementFoundOrClicked) {
@@ -268,7 +269,7 @@ class FacebookSharedPosts (
         return XpathElementFound(false)
     }
 
-    public enum class SharedPostStrategy {
+    enum class SharedPostStrategy {
         CLICK_ON_SHARED_POSTS, USE_SHARED_ENDPOINT, COMMENTS_OF_POSTS
     }
 
@@ -278,6 +279,11 @@ class FacebookSharedPosts (
         openPost(facebook4jPost, strategies)
     }
     fun openPost(post: Post, strategies: List<SharedPostStrategy>) {
+
+        if (commentingTemporarilyBlocked) {
+            logger.error("Commenting has been temporarily blocked, skipping rest of posts")
+            return
+        }
 
         run breaking@ {
             strategies.forEach {
@@ -303,7 +309,7 @@ class FacebookSharedPosts (
                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[1]/div/div[1]/div/div[2]/div[3]/span/div",
                             ), true
                         )
-                    } catch (exception: Exception) {
+                    } catch (_: Exception) {
                         logger.info("\t\tcouldn't click link to shared posts using ${it.name} strategy")
                         return@forEach
                     }
@@ -328,7 +334,7 @@ class FacebookSharedPosts (
                         )
                         Thread.sleep(5000)
                     } catch (e: Exception) {
-                        logger.info("\t\tdidn't find switch between Most relevant and All coments: $e")
+                        logger.info("\t\tdidn't find switch between Most relevant and All comments: $e")
                     }
                 }
 
@@ -345,7 +351,7 @@ class FacebookSharedPosts (
                 logger.info("\t\tpost is $numberOfDaysSincePost days old, will scroll maximum of $scrollTimeout times using ${it.name} strategy")
                 if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
                     scrollTimeout = 2
-                    logger.info("\t\tdeveloper-mode is enabled will only scroll maxium of $scrollTimeout times")
+                    logger.info("\t\tdeveloper-mode is enabled will only scroll maximum of $scrollTimeout times")
                 }
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
@@ -364,14 +370,14 @@ class FacebookSharedPosts (
                                 "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div",
                             ), false
                         )
-                    } catch (exception: Exception) {
+                    } catch (_: Exception) {
                         logger.info("\t\tcouldn't scroll to load all posts using ${it.name} strategy")
                         return@forEach
                     }
                 }
                 for (scrollNumber in 1..scrollTimeout) {
                     // TODO after every page_down or tab check if there's modal about temporarily blocked feature and then switch to next strategy
-                    // for /shares/ strategy this decetcs it: driver.pageSource.contains("You’re Temporarily Blocked")
+                    // for /shares/ strategy this detects it: driver.pageSource.contains("You’re Temporarily Blocked")
                     when (it) {
                         SharedPostStrategy.CLICK_ON_SHARED_POSTS    -> driver.findElement(By.xpath(chosenXpathElementFound.xpath))
                             .sendKeys(Keys.PAGE_DOWN)
@@ -382,7 +388,7 @@ class FacebookSharedPosts (
                     }
 
                     Thread.sleep(5000) // was 500 but on rare occasion wasn't enough time to load ajax response with new posts. now much longer to also try avoid temporary block of /shares endpoint
-                    // TODO below works for shared enpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably lenth of modal, check if xpath lenght will be enough
+                    // TODO below works for shared endpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably length of modal, check if xpath length will be enough
                     val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
                     if (currentScrollHeight <= previousScrollHeight) {
                         currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
@@ -455,7 +461,7 @@ class FacebookSharedPosts (
 
                                 SharedPostStrategy.COMMENTS_OF_POSTS -> null
                             }
-                        } catch (exception: Exception) {
+                        } catch (_: Exception) {
                             logger.error("\t\tcouldn't press Tab on like in first post using ${it.name} strategy")
                             return@forEach
                         }
@@ -534,7 +540,7 @@ class FacebookSharedPosts (
                         if (nextPostStartPosition == -1) {
                             return@breaking
                         }
-                        //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, wont' use it since API permission is needed to accessed post made by others
+                        //pageSource.substringAfter("permalink.php?story_fbid=").substringBefore("&") // id of post, won't use it since API permission is needed to accessed post made by others
                         val postSource: String = when(it) {
                             SharedPostStrategy.CLICK_ON_SHARED_POSTS,
                                 SharedPostStrategy.USE_SHARED_ENDPOINT  -> pageSource.substringBefore("<a aria-label=\"")
@@ -597,6 +603,8 @@ class FacebookSharedPosts (
 
                                         SharedPostStrategy.USE_SHARED_ENDPOINT -> clickElementIfOneInListExists(
                                                 listOf(
+                                                    "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[2]",
                                                     "/html/body/div[1]/div/div[1]/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[1]",
@@ -627,6 +635,8 @@ class FacebookSharedPosts (
 
                                         SharedPostStrategy.COMMENTS_OF_POSTS -> clickElementIfOneInListExists(
                                             listOf(
+                                                "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div[1]/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div",
+                                                "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div[1]/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
@@ -635,7 +645,7 @@ class FacebookSharedPosts (
                                         )
                                     }
 
-                                } catch (exception: Exception) {
+                                } catch (_: Exception) {
                                     // TODO add counter of failed comments, add some id's so they could be identified for debug later
                                     logger.error("\t\t\tcouldn't click on comment text box using ${it.name} strategy")
                                     // TODO repeat with below, move to function
@@ -659,7 +669,6 @@ class FacebookSharedPosts (
                                         driver.findElement(By.xpath(commentTextFieldPossibleXpaths.xpath))
                                             .sendKeys(Keys.RETURN)
 
-                                        // TODO check source for "Unable to post comment." because it's there when there is a ban
 
                                         commentedPosts++
                                     } else {
@@ -686,6 +695,18 @@ class FacebookSharedPosts (
                                 val numberOfSeconds: Long = (10..120).random().toLong()
                                 logger.info("\t\t\tsleeping for $numberOfSeconds seconds\n")
                                 Thread.sleep(1000 * numberOfSeconds)
+
+                                // check if account was blocked to post comments
+                                for (commentingBlockedErrorMessage in listOf(
+                                    "We limit how often you can post, comment or do other things in a given amount of time in order to help protect the community from spam",
+                                    "You can't use this feature at the moment",
+                                )) {
+                                    if (driver.pageSource.contains(commentingBlockedErrorMessage)) {
+                                        commentingTemporarilyBlocked = true
+                                        logger.error("Commenting has been temporarily blocked, skipping rest of posts")
+                                        return
+                                    }
+                                }
 
                                 tabToNextPost(it)
                             } else {
@@ -729,7 +750,7 @@ class FacebookSharedPosts (
         }
     }
 
-    public fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
+    fun checkIfNewAdPostHasBeenAdded(fanPagePostIds: List<String>) {
 
         logger.info("will be checking for new ad post id's")
         if (facebookProperties.getProperty("username").contains("kuba")) {
@@ -742,13 +763,13 @@ class FacebookSharedPosts (
 
         val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
         val totalNumberOfComments = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
-        logger.info("\tthere're $totalNumberOfComments comments")
+        logger.info("\tthere are $totalNumberOfComments comments")
         var fanPagePosts = 0
         var adPostsAlreadyExisted = 0
-        var adPostsDidntExist = 0
+        var adPostsDidNotExist = 0
         for (i in 1..totalNumberOfComments) {
             logger.info("\t\ttrying to click on comment $i/$totalNumberOfComments")
-            // since we're going from top inbox message and we're dismissing it afterwards next inbox message will be always on the top
+            // since we're going from top inbox message, and we're dismissing it afterward next inbox message will be always on the top
             clickElementIfOneInListExists(listOf(
                 "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div[1]/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]/div",
                 "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/span/div/div/div[1]/div[1]/div/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div[2]/div/div/div/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/div[1]/div/div/div/div/div/div[1]"
@@ -771,7 +792,7 @@ class FacebookSharedPosts (
                 if (!BufferedReader(FileReader(file)).lines().toList()
                         .contains(shortPostId)
                 ) {
-                    adPostsDidntExist++
+                    adPostsDidNotExist++
                     // ad post list doesn't contain post id
                     logger.info("\t\t\tad post is not in our list, trying to add")
                     val output: OutputStream = FileOutputStream(file, true)
@@ -808,7 +829,7 @@ class FacebookSharedPosts (
                 logger.error(e.toString())
             }
         }
-        logger.info("got $fanPagePosts fan page posts, $adPostsAlreadyExisted ad posts that were already added, $adPostsDidntExist ad posts that were new")
+        logger.info("got $fanPagePosts fan page posts, $adPostsAlreadyExisted ad posts that were already added, $adPostsDidNotExist ad posts that were new")
     }
 
     private fun doesStringContainAnySubstringInList(postSource: String, substringList: List<String>): Boolean {

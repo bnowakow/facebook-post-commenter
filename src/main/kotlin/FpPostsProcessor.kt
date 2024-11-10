@@ -1,5 +1,6 @@
 import com.restfb.Connection
 import com.restfb.FacebookClient
+import com.restfb.types.Post
 import mu.KLogger
 import kotlin.math.min
 
@@ -8,28 +9,33 @@ class FpPostsProcessor (private val logger: KLogger,
                         private val facebook4jProperties: Facebook4jProperties,
                         private val facebookReplies: FacebookReplies,
                         private val restfbClient: FacebookClient,
-                        public var facebookSharedPosts: FacebookSharedPosts?) {
+                        var facebookSharedPosts: FacebookSharedPosts?) {
 
     var postIds: MutableList<String> = ArrayList()
 
-    private fun fetchAllPostsFromFanpage(fanpageId: String): ArrayList<com.restfb.types.Post> {
-        var postConnection: Connection<com.restfb.types.Post> = restfbClient.fetchConnection(
-            "$fanpageId/feed", com.restfb.types.Post::class.java,
-        )
+    private fun fetchAllPostsFromFanpage(fanpageId: String): ArrayList<Post> {
+        if (facebook4jProperties.getProperty("enabled") == "true") {
 
-        val allPosts: ArrayList<com.restfb.types.Post> = ArrayList()
-        while (true) {
-            for (postList in postConnection) {
-                allPosts.addAll(postList)
+            var postConnection: Connection<Post> = restfbClient.fetchConnection(
+                "$fanpageId/feed", Post::class.java,
+            )
+
+            val allPosts: ArrayList<Post> = ArrayList()
+            while (true) {
+                for (postList in postConnection) {
+                    allPosts.addAll(postList)
+                }
+                if (postConnection.nextPageUrl != null) {
+                    postConnection = restfbClient.fetchConnectionPage(postConnection.nextPageUrl, Post::class.java)
+                } else {
+                    break
+                }
             }
-            if (postConnection.nextPageUrl != null) {
-                postConnection = restfbClient.fetchConnectionPage(postConnection.nextPageUrl, com.restfb.types.Post::class.java)
-            } else {
-                break
-            }
+
+            return allPosts
+        } else {
+            return arrayListOf<Post>()
         }
-
-        return allPosts
     }
 
     fun processFpPost() {
@@ -37,7 +43,7 @@ class FpPostsProcessor (private val logger: KLogger,
          * Fanpage Posts
          ***********************/
 
-        val posts: ArrayList<com.restfb.types.Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpage.id"))
+        val posts: ArrayList<Post> = fetchAllPostsFromFanpage(facebook4jProperties.getProperty("fanpage.id"))
         logger.info("will be processing ${posts.size} fan page posts:")
 
         if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
