@@ -17,6 +17,7 @@ while true; do
     docker compose down
     date
     #sleep 3h
-    sleep 8h # for developer mode
+    #sleep 8h # for developer mode
+    sleep 24h # for Received Facebook error response of type OAuthException: (#80001) There have been too many calls to this Page account. Wait a bit and try again. For more info, please refer to https://developers.facebook.com/docs/graph-api/overview/rate-limiting. (code 80001, subcode null) 'null - null'
 done
 
