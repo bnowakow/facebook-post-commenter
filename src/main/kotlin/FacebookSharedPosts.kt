@@ -3,6 +3,7 @@ import facebook4j.Post
 import mu.KotlinLogging
 import org.apache.commons.io.FileUtils
 import org.openqa.selenium.*
+import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.openqa.selenium.firefox.FirefoxProfile
@@ -34,6 +35,12 @@ class FacebookSharedPosts (
     private val logger = KotlinLogging.logger {}
 
     init {
+        // Chrome
+//        driver = ChromeDriver()
+
+        // Safari
+        //driver = SafariDriver()
+
         // Firefox
         // https://www.browserstack.com/docs/automate/selenium/firefox-profile
         val firefoxProfile = FirefoxProfile()
@@ -54,6 +61,7 @@ class FacebookSharedPosts (
         firefoxOptions.profile = firefoxProfile
 
         driver = FirefoxDriver(firefoxOptions)
+
         if (!facebookProperties.getProperty("browser.headless").toBoolean()) {
             // laptop screen
 //        driver.manage().window().position = Point(800, 0)
@@ -65,11 +73,6 @@ class FacebookSharedPosts (
         js = driver as JavascriptExecutor
 //        driver.findElement(By.cssSelector("body")).sendKeys(Keys.chord(Keys.COMMAND, "-"))
 
-        // Chrome
-        //driver = ChromeDriver()
-
-        // Safari
-        //driver = SafariDriver()
     }
 
     fun takeScreenshot(comment: String = "") {
@@ -574,6 +577,9 @@ class FacebookSharedPosts (
                                     logger.info("\t\t\ttrying to click Reply button to reveal text box")
                                     clickElementIfOneInListExists(
                                         listOf(
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
@@ -598,6 +604,9 @@ class FacebookSharedPosts (
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]/div[2]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[4]/div/div/div[1]/div/div[2]/div/div/div/div[3]/div[1]/div/div[$postNumber]/div/div/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
                                                 ), false
                                             )
 
@@ -637,6 +646,8 @@ class FacebookSharedPosts (
                                             listOf(
                                                 "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div[1]/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div",
                                                 "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div[1]/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]",
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div[2]/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div",
+                                                "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
