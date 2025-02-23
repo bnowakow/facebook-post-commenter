@@ -66,7 +66,10 @@ class FacebookSharedPosts (
             // laptop screen
 //        driver.manage().window().position = Point(800, 0)
             // desktop screen
-            driver.manage().window().position = Point(1490, 0)
+            // 1440p
+            //driver.manage().window().position = Point(1490, 0)
+            // 1080p
+            driver.manage().window().position = Point(900, 0)
         }
 
         driver["https://www.facebook.com"]

@@ -88,22 +88,12 @@ class FacebookReplies(private val facebook: Facebook,
             reply.append(" ")
             reply.append(listOf("<3", "(:", ":)", "").random())
             reply.append(listOf("\n", "\n\n", " ").random())
-            reply.append("Link do mojej zbiórki: ")
-            if (randomizeUrls) {
-                reply.append(
-//                    shortenUrl("http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString())
-                    "http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString()
-                )
-            } else {
-                reply.append("http://siepomaga.pl/raczka-kuby")
-            }
 
-            reply.append(" ")
-
+            // 1.5% tax url
             if (java.time.LocalDate.now().month.value <= 4) {
                 // tax deduction usually can be done until end of April
                 reply.append(listOf("\n", "\n\n", " ").random())
-                reply.append("Możesz również przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: ")
+                reply.append("Możesz przekazać mi swoje 1.5% podatku przy rozliczeniu PIT: ")
                 if (randomizeUrls) {
                     reply.append(
 //                        shortenUrl("https://www.siepomaga.pl/raczka-kuby/procent-podatku?" + Random().nextLong().toString())
@@ -112,6 +102,18 @@ class FacebookReplies(private val facebook: Facebook,
                 } else {
                     reply.append("https://www.siepomaga.pl/raczka-kuby/procent-podatku")
                 }
+            }
+            reply.append(" ")
+
+            // go-fund me url
+            reply.append("Link do mojej zbiórki: ")
+            if (randomizeUrls) {
+                reply.append(
+//                    shortenUrl("http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString())
+                    "http://siepomaga.pl/raczka-kuby?" + Random().nextLong().toString()
+                )
+            } else {
+                reply.append("http://siepomaga.pl/raczka-kuby")
             }
 
             return reply.toString()
