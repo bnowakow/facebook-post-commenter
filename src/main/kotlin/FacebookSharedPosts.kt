@@ -111,23 +111,26 @@ class FacebookSharedPosts (
         // for some reason can't find alternative after they change code, as a workaround I put breakpoint on login button below and dismiss cookie modal manually
 //        driver.findElement(By.className("_42ft")).click()
 //        // workaround for above
-        var i = 0
-        while (true) {
-            driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
-            Thread.sleep(100)
-            val elementText = driver.switchTo().activeElement().text
-            logger.trace("tab i=$i element_txt=$elementText")
-            if (elementText.equals("Decline optional cookies")) {
-                break
+        logger.debug("checking if cookie consent form is present")
+        if (driver.pageSource.contains("Decline optional cookies")) {
+            var i = 0
+            while (true) {
+                driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
+                Thread.sleep(100)
+                val elementText = driver.switchTo().activeElement().text
+                logger.trace("tab i=$i element_txt=$elementText")
+                if (elementText.equals("Decline optional cookies")) {
+                    break
+                }
+                i++
             }
-            i++
-        }
-        logger.debug("trying to click on cookie consent form")
-        try {
-            driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
-        } catch (_: Exception) {
-            logger.info("exception while pressing RETURN on Tabbed button. Trying to click button By.className")
-            driver.findElement(By.className("_42ft")).click()
+            logger.debug("trying to click on cookie consent form")
+            try {
+                driver.findElement(By.cssSelector("body")).sendKeys(Keys.RETURN)
+            } catch (_: Exception) {
+                logger.info("exception while pressing RETURN on Tabbed button. Trying to click button By.className")
+                driver.findElement(By.className("_42ft")).click()
+            }
         }
 //        // \workaround
         Thread.sleep(500)
@@ -350,15 +353,15 @@ class FacebookSharedPosts (
                 val maximumAmountOfScrolls = when (it) {
                     SharedPostStrategy.CLICK_ON_SHARED_POSTS,
                         SharedPostStrategy.COMMENTS_OF_POSTS    -> 30 // was 100 but produced too many temporary block of /shares endpoint
-                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> 5 // was 150 but produced too many temporary block of /shares endpoint
+                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> 10 // was 150 but produced too many temporary block of /shares endpoint
                 }
                 // scroll down to bottom of page to load all posts (lazy loading)
                 var scrollTimeout: Long = max((maximumAmountOfScrolls *  postAgeCoefficient).toLong(), minimumAmountOfScrolls)
                 logger.info("\t\tpost is $numberOfDaysSincePost days old, will scroll maximum of $scrollTimeout times using ${it.name} strategy")
-                if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
-                    scrollTimeout = 2
-                    logger.info("\t\tdeveloper-mode is enabled will only scroll maximum of $scrollTimeout times")
-                }
+//                if (facebookProperties.getProperty("developer-mode-enabled") == "true") {
+//                    scrollTimeout = 5
+//                    logger.info("\t\tdeveloper-mode is enabled will only scroll maximum of $scrollTimeout times")
+//                }
                 var previousScrollHeight: Long = -1
                 var previousNumberOfSegments: Int = -1
                 var currentNumberOfSegments: Int
