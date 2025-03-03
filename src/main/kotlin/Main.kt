@@ -36,8 +36,8 @@ fun main() {
 
     facebook.extendTokenExpiration()
 
-    adPostsProcessor.processAdPost()
     fpPostsProcessor.processFpPost()
+    adPostsProcessor.processAdPost()
     facebookReplies.processRetries()
     if (facebookProperties.getProperty("workaround-enabled") == "true") {
         facebookSharedPosts!!.checkIfNewAdPostHasBeenAdded(fpPostsProcessor.postIds)
