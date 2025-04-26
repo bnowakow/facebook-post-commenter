@@ -88,13 +88,20 @@ class FacebookSharedPosts (
 
     private fun tabUntilGivenLabelIsFocussed(attributeName: String, expectedAttributeValue: String, maximumAmountOfTabPresses: Int = 30) {
         for (i in 1..maximumAmountOfTabPresses) {
-            if (driver.switchTo().activeElement().getAttribute(attributeName)?.equals(expectedAttributeValue) == true) {
+            try {
+                if (driver.switchTo().activeElement().getAttribute(attributeName)
+                        ?.equals(expectedAttributeValue) == true
+                ) {
+                    driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
+                    driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
+                    break
+                }
                 driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
-                driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
-                break
+                Thread.sleep(500)  // was 5 but slowing down to not get banned
+            } catch (e: TimeoutException) {
+                // TODO find out if we need to do some kind of aspect to try do retry/ignore logic to all calls when org.openqa.selenium.TimeoutException can occur
+                logger.error("TimeoutException caught, trying to continue")
             }
-            driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
-            Thread.sleep(500)  // was 5 but slowing down to not get banned
         }
     }
 
@@ -438,6 +445,7 @@ class FacebookSharedPosts (
                     SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource.indexOf("Shared with Public</title>")
                     SharedPostStrategy.COMMENTS_OF_POSTS        -> 0
                 }
+                // DEBUG: breakpoint for each post
                 if (indexOfSharedPostsHeading > -1) {
                     if (facebookProperties.getProperty("username").contains("kuba")) {
                         // send tab from like of first post should bring back focus to the top
@@ -465,6 +473,8 @@ class FacebookSharedPosts (
                                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
                                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
                                         "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[1]/div/div/div/div[1]/div[1]",
+                                        "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[1]/div/div[2]/div/div[1]/div[1]",
                                     ), false
                                 )
 
@@ -472,7 +482,7 @@ class FacebookSharedPosts (
                             }
                         } catch (_: Exception) {
                             logger.error("\t\tcouldn't press Tab on like in first post using ${it.name} strategy")
-                            return@forEach
+                            return@forEach // TODO figure out if exception should be thrown (if we can still continue when we don't execut it)
                         }
 
 
@@ -585,6 +595,7 @@ class FacebookSharedPosts (
                                         listOf(
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
@@ -594,6 +605,9 @@ class FacebookSharedPosts (
                                             "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
                                             "/html/body/div[1]/div/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[2]/div/div/div/div/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber}]/div/div[1]/div/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[2]/div/div/div/div/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber}]/div/div[1]/div[2]/div[2]/div[2]/ul/li[3]/div/div",
+                                            "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[2]/div/div/div/div/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber}]/div/div[1]/div/div[2]/div[3]/ul/li[3]/div/div",
                                             ), true
                                     )
                                 }
@@ -645,6 +659,14 @@ class FacebookSharedPosts (
                                                     "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[4]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div/div[1]/div/div[1]",
                                                     "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[8]/div/div/div[4]/div/div/div[2]/div[5]/div/div[2]/div[1]/form/div/div[1]/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div[1]/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[2]/div/div/div/div/div/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[4]/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div[1]/div/div[2]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[2]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div[2]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[4]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div[2]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
                                                 ), false
                                             )
 
@@ -658,13 +680,17 @@ class FacebookSharedPosts (
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div/div[2]/div/div[2]/form/div/div/div[1]/div/div",
                                                 "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[${postNumber+1}]/div/div/div/div[2]/div/div/div/div/div/div[2]/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div",
+                                                "/html/body/div[1]/div/div[1]/div/div[5]/div/div/div[2]/div/div/div/div/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[5]/div/div/div[2]/div[3]/div[${postNumber}]/div/div[2]/div/div/div/div/div/div[2]/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div",
                                             ), false
                                         )
                                     }
 
                                 } catch (_: Exception) {
                                     // TODO add counter of failed comments, add some id's so they could be identified for debug later
-                                    logger.error("\t\t\tcouldn't click on comment text box using ${it.name} strategy")
+                                    val errorMessage = "couldn't click on comment text box using ${it.name} strategy"
+                                    logger.error("\t\t\t${errorMessage}")
+                                    // TODO uncomment later
+                                    throw RuntimeException(errorMessage)
                                     // TODO repeat with below, move to function
                                     postNumber++
                                     pageSource = removeTopPostSourceCode(it, pageSource)
