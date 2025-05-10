@@ -667,6 +667,7 @@ class FacebookSharedPosts (
                                                     "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[3]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div[2]",
                                                     "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[4]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div[2]",
                                                     "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[$postNumber]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",
+                                                    "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div[1]/div[1]/div/div/div/div/div/div/div/div[2]/div[${postNumber}]/div/div/div/div/div/div/div/div/div/div[13]/div/div/div[4]/div/div/div[2]/div[3]/div[1]/div/div/div/div/div[2]/div/div[2]/form/div/div[1]/div[1]/div/div[1]/div/div[1]",           // guessing, not confirmed
                                                 ), false
                                             )
 
@@ -690,7 +691,7 @@ class FacebookSharedPosts (
                                     val errorMessage = "couldn't click on comment text box using ${it.name} strategy"
                                     logger.error("\t\t\t${errorMessage}")
                                     // TODO uncomment later
-                                    throw RuntimeException(errorMessage)
+//                                    throw RuntimeException(errorMessage)
                                     // TODO repeat with below, move to function
                                     postNumber++
                                     pageSource = removeTopPostSourceCode(it, pageSource)
