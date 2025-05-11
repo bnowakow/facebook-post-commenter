@@ -5,9 +5,9 @@ val selenium_version: String = "4.32.0"
 // https://kotlinlang.org/docs/get-started-with-jvm-gradle-project.html#explore-the-build-script
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.1.20"
     application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "pl.bnowakowski"

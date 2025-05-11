@@ -119,7 +119,7 @@ class FacebookSharedPosts (
 //        driver.findElement(By.className("_42ft")).click()
 //        // workaround for above
         logger.debug("checking if cookie consent form is present")
-        if (driver.pageSource.contains("Decline optional cookies")) {
+        if (driver.pageSource?.contains("Decline optional cookies")!!) {
             var i = 0
             while (true) {
                 driver.findElement(By.cssSelector("body")).sendKeys(Keys.TAB)
@@ -153,14 +153,14 @@ class FacebookSharedPosts (
     fun inviteToLikeFanpagePeopleWhoInteractedWithPosts() {
         driver["https://business.facebook.com/latest/home?asset_id=${facebook4jProperties.getProperty("fanpage.id")}&nav_ref=aymt_reaction_inviter_tip&notif_id=1679842962374398&notif_t=aymt_bizapp_invite_reactors_to_like_page_notif&ref=notif"]
         Thread.sleep(6000)
-        if (driver.pageSource.split("You've reached your limit").size > 1) {
+        if (driver.pageSource?.split("You've reached your limit")?.size!! > 1) {
             logger.info("Can't invite people who interacted with page because daily limit of invites was reached")
             return
         }
 
         // TODO check if modal has been shown, sometimes page doesn't show modal with user list
         scalePage(50)
-        val numberOfUsers = driver.pageSource.split("name=\"select user\"").size - 1
+        val numberOfUsers = driver.pageSource?.split("name=\"select user\"")?.size!! - 1
         var numberOfInvitedUsers = 0
         try {
             for (i in 1..numberOfUsers) {
@@ -407,7 +407,7 @@ class FacebookSharedPosts (
                     // TODO below works for shared endpoint strategy but for click on shared posts return document.body.scrollHeight isn't probably length of modal, check if xpath length will be enough
                     val currentScrollHeight: Long = js.executeScript("return document.body.scrollHeight") as Long
                     if (currentScrollHeight <= previousScrollHeight) {
-                        currentNumberOfSegments = driver.pageSource.split("<a aria-label=\"").size
+                        currentNumberOfSegments = driver.pageSource?.split("<a aria-label=\"")?.size!!
                         if (currentNumberOfSegments <= previousNumberOfSegments) {
                             numberOfConfirmations++
                             if (numberOfConfirmations > 2) {
@@ -441,12 +441,12 @@ class FacebookSharedPosts (
 
                 var pageSource: String
                 val indexOfSharedPostsHeading = when (it) {
-                    SharedPostStrategy.CLICK_ON_SHARED_POSTS    -> driver.pageSource.indexOf("People who shared this")
-                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource.indexOf("Shared with Public</title>")
+                    SharedPostStrategy.CLICK_ON_SHARED_POSTS    -> driver.pageSource?.indexOf("People who shared this")
+                    SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource?.indexOf("Shared with Public</title>")
                     SharedPostStrategy.COMMENTS_OF_POSTS        -> 0
                 }
                 // DEBUG: breakpoint for each post
-                if (indexOfSharedPostsHeading > -1) {
+                if (indexOfSharedPostsHeading!! > -1) {
                     if (facebookProperties.getProperty("username").contains("kuba")) {
                         // send tab from like of first post should bring back focus to the top
                         logger.info("\t\ttrying to press Tab on like in first post")
@@ -489,9 +489,9 @@ class FacebookSharedPosts (
                         // TODO check if locale of accounts are different and this causes below
                         pageSource = when(it) {
                             SharedPostStrategy.CLICK_ON_SHARED_POSTS,
-                                SharedPostStrategy.USE_SHARED_ENDPOINT  -> driver.pageSource.substringAfter("People who shared this")
-                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource.substringAfter("aria-label=\"Comment by ")
-                        }
+                            SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource?.substringAfter("People who shared this")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource?.substringAfter("aria-label=\"Comment by ")
+                        }!!
 
                     } else {
                         // send tab from like of first post should bring back focus to the top
@@ -511,9 +511,9 @@ class FacebookSharedPosts (
                         // TODO check if locale of accounts are different and this causes below - UK?
                         pageSource = when(it) {
                             SharedPostStrategy.CLICK_ON_SHARED_POSTS,
-                            SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource.substringAfter("People Who Shared This")
-                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource.substringAfter("aria-label=\"Comment by ")
-                        }
+                            SharedPostStrategy.USE_SHARED_ENDPOINT      -> driver.pageSource?.substringAfter("People Who Shared This")
+                            SharedPostStrategy.COMMENTS_OF_POSTS        -> driver.pageSource?.substringAfter("aria-label=\"Comment by ")
+                        }!!
                     }
 
                     if (it == SharedPostStrategy.CLICK_ON_SHARED_POSTS ||
@@ -745,7 +745,7 @@ class FacebookSharedPosts (
                                     "We limit how often you can post, comment or do other things in a given amount of time in order to help protect the community from spam",
                                     "You can't use this feature at the moment",
                                 )) {
-                                    if (driver.pageSource.contains(commentingBlockedErrorMessage)) {
+                                    if (driver.pageSource?.contains(commentingBlockedErrorMessage)!!) {
                                         commentingTemporarilyBlocked = true
                                         logger.error("Commenting has been temporarily blocked, skipping rest of posts")
                                         return
@@ -806,7 +806,7 @@ class FacebookSharedPosts (
         Thread.sleep(5000)
 
         val file = File(System.getProperty("user.dir") + "/src/main/resources/adPosts.txt")
-        val totalNumberOfComments = driver.pageSource.split("bottom: -1px; right: -1px;").size - 1
+        val totalNumberOfComments = driver.pageSource?.split("bottom: -1px; right: -1px;")?.size!! - 1
         logger.info("\tthere are $totalNumberOfComments comments")
         var fanPagePosts = 0
         var adPostsAlreadyExisted = 0
@@ -820,12 +820,13 @@ class FacebookSharedPosts (
             ))
 
             val postId =
-                driver.pageSource.substringAfter("href=\"https://www.facebook.com/${facebook4jProperties.getProperty("fanpage.name")}/posts/")
-                    .substringBefore("?")
+                driver.pageSource?.substringAfter("href=\"https://www.facebook.com/${facebook4jProperties.getProperty("fanpage.name")}/posts/")
+                    ?.substringBefore("?")
 
             val postIdWithFanpagePrefix: String = facebook4jProperties.getProperty("fanpage.id") + "_" + postId
             val shortPostId : String? = adPostsProcessor.getShortId(postIdWithFanpagePrefix)
-            val postText: String = driver.pageSource.replaceBeforeLast("role=\"heading\">","").replaceAfter("</","").replaceBefore(">","").replaceAfter("<","").replace("<","").replace(">","")
+            val postText: String = driver.pageSource?.replaceBeforeLast("role=\"heading\">","")?.replaceAfter("</","")!!
+                .replaceBefore(">","").replaceAfter("<","").replace("<","").replace(">","")
             logger.info("\t\tgot post notification [${postText.substring(0, min(postText.length, 30))}...] shortPostId=$shortPostId longPostId=$postId")
 
             // check if post is fanpage post or ad post
