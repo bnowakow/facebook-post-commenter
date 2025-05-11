@@ -1,5 +1,5 @@
 # https://stackoverflow.com/a/50467205
-FROM gradle:jdk17 AS builder
+FROM gradle:jdk21 AS builder
 
 ENV APP_HOME=/app
 WORKDIR $APP_HOME
@@ -9,7 +9,8 @@ RUN ./gradlew --console verbose --full-stacktrace shadowJar || return 0
 COPY . .
 RUN ./gradlew --console verbose --full-stacktrace shadowJar
 
-FROM debian:bookworm-20240701
+# upgraded from bookworn to trixie since bookworm had only java-17 and trixie have java-21
+FROM debian:trixie-20250428
 
 ENV ARTIFACT_NAME=shadow-1.0-SNAPSHOT-all.jar
 ENV APP_HOME=/app
@@ -33,15 +34,6 @@ RUN apt-get update -qqy \
 
 RUN apt-get -qqy install firefox
 
-# ARG FIREFOX_VERSION=128.0.0
-#  && wget --no-verbose -O /tmp/firefox.tar.bz2 https://download-installer.cdn.mozilla.net/pub/firefox/releases/$FIREFOX_VERSION/linux-x86_64/en-US/firefox-$FIREFOX_VERSION.tar.bz2 \
-#  && apt-get -y purge firefox \
-#  && rm -rf /opt/firefox \
-#  && tar -C /opt -xjf /tmp/firefox.tar.bz2 \
-#  && rm /tmp/firefox.tar.bz2 \
-#  && mv /opt/firefox /opt/firefox-$FIREFOX_VERSION \
-#  && ln -fs /opt/firefox-$FIREFOX_VERSION/firefox /usr/bin/firefox
-
 # Install GeckoDriver
 ARG GECKODRIVER_VERSION=0.36.0
 RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v$GECKODRIVER_VERSION/geckodriver-v$GECKODRIVER_VERSION-linux64.tar.gz \
@@ -52,14 +44,10 @@ RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geck
   && chmod 755 /opt/geckodriver-$GECKODRIVER_VERSION \
   && ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/bin/geckodriver
 
-# bookworm has only jdk-17, doing stupid thing of mixing different version of debian to get newer package
-#RUN echo "deb http://deb.debian.org/debian/ trixie main contrib non-free" >> /etc/apt/sources.list.d/debian.list
-#RUN apt-get update -qqy
-#RUN apt-get install -y openjdk-21-jdk
-
-RUN apt-get install -y openjdk-17-jdk
+RUN apt-get install -y openjdk-21-jdk
 
 COPY --from=builder $APP_HOME/build/libs/$ARTIFACT_NAME .
 # TODO: JSONArgsRecommended: JSON arguments recommended for ENTRYPOINT to prevent unintended behavior related to OS signals
 # doesn't parse last variable ENTRYPOINT ["java", "-jar", $ARTIFACT_NAME]
 ENTRYPOINT java -jar $ARTIFACT_NAME
+
